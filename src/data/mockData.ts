@@ -153,7 +153,7 @@ export const INITIAL_ORDERS: Order[] = [
     total: 37.51,
     status: 'Entregado',
     paymentMethod: 'Tarjeta',
-    shippingAddress: 'Av. Libertador, Edif. Humana, Piso 4, Urb. Las Mercedes, Caracas',
+    shippingAddress: 'Av. Principal de Las Mercedes, Edif. Humana, Piso 4, Urb. Las Mercedes — Baruta, Miranda',
     createdAt: '2026-06-01T10:30:00Z',
     history: [
       { status: 'Pendiente', timestamp: '2026-06-01T10:30:00Z', note: 'Pedido recibido a través de la web.' },
@@ -187,7 +187,7 @@ export const INITIAL_ORDERS: Order[] = [
     total: 37.35,
     status: 'Enviado',
     paymentMethod: 'Transferencia',
-    shippingAddress: 'Av. Francisco de Miranda, Torre Parque Cristal, Piso 8, Caracas',
+    shippingAddress: 'Av. Francisco de Miranda, Urb. Campo Alegre, Torre Parque Cristal, Piso 8 — Chacao, Distrito Capital',
     createdAt: '2026-06-05T08:20:00Z',
     history: [
       { status: 'Pendiente', timestamp: '2026-06-05T08:20:00Z', note: 'Esperando confirmación de transferencia bancaria.' },
@@ -220,7 +220,7 @@ export const INITIAL_ORDERS: Order[] = [
     total: 30.91,
     status: 'En Preparación',
     paymentMethod: 'Tarjeta',
-    shippingAddress: 'Calle 72 con Av. 3, Residencias El Viñedo, Valencia',
+    shippingAddress: 'Av. 100, Residencias El Viñedo, Urb. El Trigal Norte — Valencia, Carabobo',
     createdAt: '2026-06-07T14:45:00Z',
     history: [
       { status: 'Pendiente', timestamp: '2026-06-07T14:45:00Z', note: 'Pago aprobado mediante pasarela externa.' },

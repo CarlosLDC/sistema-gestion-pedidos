@@ -9,7 +9,11 @@ import CustomersView from '../components/CustomersView';
 import OrderDetailModal from '../components/OrderDetailModal';
 import NewOrderModal from '../components/NewOrderModal';
 import { Order, Product, Customer, OrderStatus } from '../types';
-import { normalizeCustomer } from '../lib/customerLocation';
+import {
+  CUSTOMERS_DATA_VERSION,
+  loadCustomersFromStorage,
+  shouldRefreshCustomersStorage,
+} from '../lib/customerLocation';
 import { INITIAL_ORDERS, INITIAL_PRODUCTS, INITIAL_CUSTOMERS } from '../data/mockData';
 import { Bell, Activity } from 'lucide-react';
 import LoginView from '../components/LoginView';
@@ -58,14 +62,12 @@ export default function Home() {
       localStorage.setItem('zenith_products', JSON.stringify(INITIAL_PRODUCTS));
     }
 
-    if (localCustomers) {
-      const parsed = JSON.parse(localCustomers) as (Customer & { city?: string })[];
-      const normalized = parsed.map(normalizeCustomer);
-      setCustomers(normalized);
-      localStorage.setItem('zenith_customers', JSON.stringify(normalized));
-    } else {
-      setCustomers(INITIAL_CUSTOMERS);
-      localStorage.setItem('zenith_customers', JSON.stringify(INITIAL_CUSTOMERS));
+    const storedCustomersVersion = Number(localStorage.getItem('zenith_customers_version') ?? '0') || null;
+    const customersData = loadCustomersFromStorage(localCustomers);
+    setCustomers(customersData);
+    localStorage.setItem('zenith_customers', JSON.stringify(customersData));
+    if (shouldRefreshCustomersStorage(storedCustomersVersion)) {
+      localStorage.setItem('zenith_customers_version', String(CUSTOMERS_DATA_VERSION));
     }
     
     setIsLoaded(true);

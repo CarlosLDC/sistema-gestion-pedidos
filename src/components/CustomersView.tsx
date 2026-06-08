@@ -181,6 +181,7 @@ export default function CustomersView({ customers, onAddCustomer }: CustomersVie
                 title={c.name}
                 subtitle={c.email}
                 fields={[
+                  { label: 'Dirección', value: formatCustomerAddress(c) },
                   { label: 'Ubicación', value: formatCustomerLocation(c) },
                   { label: 'Pedidos', value: c.totalOrders },
                   { label: 'Facturación', value: formatCurrency(c.totalSpent) },
