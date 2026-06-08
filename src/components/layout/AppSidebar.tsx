@@ -71,14 +71,14 @@ export default function AppSidebar({
       <div className="h-16 flex items-center gap-3 px-6 border-b border-surface-900 bg-surface-950/50 backdrop-blur-md">
         <div
           className={cn(
-            'h-9 w-9 rounded-lg flex items-center justify-center text-white',
+            'h-9 w-9 rounded-lg flex items-center justify-center text-foreground',
             brandGradient[accent]
           )}
         >
           <BrandIcon className="h-5 w-5" />
         </div>
         <div className="min-w-0 flex-1">
-          <h1 className="text-white tracking-tight text-base leading-none truncate">{brand.title}</h1>
+          <h1 className="text-foreground tracking-tight text-base leading-none truncate">{brand.title}</h1>
           <span className="text-[10px] text-surface-500 font-medium tracking-wider uppercase truncate block">
             {brand.subtitle}
           </span>
@@ -110,14 +110,14 @@ export default function AppSidebar({
             <div className="flex items-center gap-3 p-2 rounded-xl hover:bg-surface-900/40 transition-colors duration-150">
               <div
                 className={cn(
-                  'h-10 w-10 rounded-full border border-surface-700 flex items-center justify-center font-bold text-white text-sm shrink-0',
+                  'h-10 w-10 rounded-full border border-surface-700 flex items-center justify-center font-bold text-foreground text-sm shrink-0',
                   profile.avatarClassName ?? 'bg-surface-800'
                 )}
               >
                 {profile.initials}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-white truncate">{profile.name}</p>
+                <p className="text-sm font-semibold text-foreground truncate">{profile.name}</p>
                 <p className="text-xs text-surface-500 truncate">{profile.role}</p>
               </div>
               {onLogout && logoutVariant === 'icon' && (

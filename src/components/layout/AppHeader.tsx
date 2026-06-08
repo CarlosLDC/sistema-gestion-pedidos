@@ -3,6 +3,7 @@
 import React from 'react';
 import { Bell, Menu } from 'lucide-react';
 import Button from '../ui/Button';
+import { ThemeToggle } from '../theme';
 
 export interface AppHeaderProps {
   statusLabel?: string;
@@ -32,7 +33,7 @@ export default function AppHeader({
           <button
             type="button"
             onClick={onMenuClick}
-            className="lg:hidden p-1.5 rounded-lg text-surface-400 hover:text-white hover:bg-surface-900 transition-colors cursor-pointer shrink-0"
+            className="lg:hidden p-1.5 rounded-lg text-surface-400 hover:text-foreground hover:bg-surface-900 transition-colors cursor-pointer shrink-0"
             aria-label="Abrir menú"
           >
             <Menu className="h-5 w-5" />
@@ -48,8 +49,9 @@ export default function AppHeader({
 
       <div className="flex items-center gap-3 sm:gap-5 shrink-0">
         {actions}
+        <ThemeToggle />
         {showNotifications && (
-          <div className="relative cursor-pointer p-1.5 rounded-lg text-surface-400 hover:text-white hover:bg-surface-900 transition-colors">
+          <div className="relative cursor-pointer p-1.5 rounded-lg text-surface-400 hover:text-foreground hover:bg-surface-900 transition-colors">
             <Bell className="h-4.5 w-4.5" />
             {notificationCount > 0 && (
               <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-white/80" />
@@ -58,7 +60,7 @@ export default function AppHeader({
         )}
         {trailing ?? (
           <div className="flex items-center gap-2 border-l border-surface-850 pl-3 sm:pl-4">
-            <div className="h-7 w-7 rounded-full bg-surface-800 border border-surface-700 flex items-center justify-center text-xs font-semibold text-white">
+            <div className="h-7 w-7 rounded-full bg-surface-800 border border-surface-700 flex items-center justify-center text-xs font-semibold text-foreground">
               {profileInitials}
             </div>
             <span className="text-xs font-semibold text-surface-300 hidden md:inline">{profileName}</span>

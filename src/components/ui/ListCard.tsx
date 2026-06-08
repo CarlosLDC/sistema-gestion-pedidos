@@ -39,7 +39,7 @@ export default function ListCard({
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <div className="font-semibold text-surface-100 text-sm truncate">{title}</div>
+          <div className="font-semibold text-foreground text-sm truncate">{title}</div>
           {subtitle && <div className="text-xs text-surface-500 mt-0.5 truncate">{subtitle}</div>}
         </div>
         {badge && <div className="shrink-0">{badge}</div>}

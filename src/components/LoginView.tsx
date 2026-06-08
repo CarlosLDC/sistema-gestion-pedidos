@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Eye, EyeOff, Mail, Lock, AlertCircle, Info, ExternalLink, Activity } from 'lucide-react';
 import { Card, Input, Button, Label } from './ui';
+import { ThemeToggle } from './theme';
 
 interface LoginViewProps {
   onLoginSuccess: (role: string, email: string) => void;
@@ -106,6 +107,9 @@ export default function LoginView({ onLoginSuccess }: LoginViewProps) {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-surface-950 p-4 relative overflow-hidden font-sans">
+      <div className="absolute top-4 right-4 z-20">
+        <ThemeToggle />
+      </div>
       {/* Decorative background glows */}
       <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-80 h-80 rounded-full bg-white/5 blur-[100px] pointer-events-none"></div>
       <div className="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-96 h-96 rounded-full bg-white/[0.03] blur-[120px] pointer-events-none"></div>
@@ -114,7 +118,7 @@ export default function LoginView({ onLoginSuccess }: LoginViewProps) {
         
         {/* Logo and header */}
         <div className="flex flex-col items-center text-center space-y-2">
-          <div className="h-12 w-12 rounded-xl bg-surface-800 border border-surface-700 flex items-center justify-center text-white">
+          <div className="h-12 w-12 rounded-xl bg-surface-800 border border-surface-700 flex items-center justify-center text-foreground">
             <Activity className="h-6 w-6" />
           </div>
           <h2 className="zenith-page-title mt-2">Zenith Portal</h2>

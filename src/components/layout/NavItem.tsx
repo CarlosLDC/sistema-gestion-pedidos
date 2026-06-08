@@ -20,8 +20,8 @@ interface NavItemProps {
 }
 
 const accentActiveClasses: Record<AccentVariant, string> = {
-  primary: 'bg-white/8 text-white border-l-2 border-white/70',
-  secondary: 'bg-white/8 text-white border-l-2 border-white/70',
+  primary: 'bg-white/8 text-foreground border-l-2 border-white/70',
+  secondary: 'bg-white/8 text-foreground border-l-2 border-white/70',
 };
 
 const accentIconClasses: Record<AccentVariant, string> = {

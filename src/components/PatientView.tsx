@@ -31,7 +31,7 @@ import {
   AlertTriangle
 } from 'lucide-react';
 import { AppShell, AppSidebar, AppHeader } from './layout';
-import { PageHeader, Button, ListCard } from './ui';
+import { PageHeader, Button, ListCard, Modal, ModalBody } from './ui';
 
 interface PatientViewProps {
   patientName: string;
@@ -112,6 +112,7 @@ export default function PatientView({ patientName, patientEmail, onLogout }: Pat
   // QR Code Expiry State
   const [qrToken, setQrToken] = useState('PX-992-8812');
   const [qrSecondsLeft, setQrSecondsLeft] = useState(30);
+  const [isCredentialModalOpen, setIsCredentialModalOpen] = useState(false);
 
   // Proposal states (Pantalla P.2)
   const [proposalItems] = useState<ProposalItem[]>([
@@ -312,48 +313,26 @@ export default function PatientView({ patientName, patientEmail, onLogout }: Pat
     else setActiveSubTab('profile');
   };
 
-  const qrSidebarExtra = (
-    <div className="p-4 border-b border-surface-900 bg-surface-950/30 space-y-3">
-      <div className="flex justify-between items-center text-[10px] font-bold text-surface-400 uppercase tracking-wider">
-        <span>Credencial QR Dinámica</span>
-        <button
-          onClick={handleRefreshQR}
-          className="text-primary-400 hover:text-primary-300 flex items-center gap-0.5 cursor-pointer"
-        >
-          <RefreshCw className="h-3 w-3" />
-          <span>Rotar</span>
-        </button>
-      </div>
-      <div className="flex flex-col items-center bg-white p-3 rounded-xl shadow-inner relative group border border-surface-700/10">
-        <svg viewBox="0 0 100 100" className="w-28 h-28 text-surface-900">
-          <rect x="0" y="0" width="20" height="20" fill="currentColor" />
-          <rect x="5" y="5" width="10" height="10" fill="white" />
-          <rect x="80" y="0" width="20" height="20" fill="currentColor" />
-          <rect x="85" y="5" width="10" height="10" fill="white" />
-          <rect x="0" y="80" width="20" height="20" fill="currentColor" />
-          <rect x="5" y="85" width="10" height="10" fill="white" />
-          <rect x="30" y="10" width="10" height="5" fill="currentColor" />
-          <rect x="45" y="5" width="5" height="15" fill="currentColor" />
-          <rect x="60" y="0" width="10" height="10" fill="currentColor" />
-          <rect x="35" y="30" width="15" height="10" fill="currentColor" />
-          <rect x="10" y="35" width="10" height="15" fill="currentColor" />
-          <rect x="55" y="45" width="20" height="5" fill="currentColor" />
-          <rect x="30" y="60" width="15" height="15" fill="currentColor" />
-          <rect x="80" y="30" width="10" height="20" fill="currentColor" />
-          <rect x="75" y="60" width="15" height="10" fill="currentColor" />
-          <rect x="50" y="80" width="25" height="15" fill="currentColor" />
-          <rect x="85" y="85" width="10" height="10" fill="white" />
-        </svg>
-        <div className="mt-2 text-center">
-          <span className="text-[10px] font-mono font-bold text-surface-800 tracking-wider">
-            TOKEN: {qrToken}
-          </span>
-          <p className="text-[8px] text-surface-500 font-medium mt-0.5">
-            Vence en <span className="text-secondary-500 font-bold">{qrSecondsLeft}s</span>
-          </p>
-        </div>
-      </div>
-    </div>
+  const credentialQrSvg = (
+    <svg viewBox="0 0 100 100" className="w-40 h-40 sm:w-48 sm:h-48 text-surface-900">
+      <rect x="0" y="0" width="20" height="20" fill="currentColor" />
+      <rect x="5" y="5" width="10" height="10" fill="white" />
+      <rect x="80" y="0" width="20" height="20" fill="currentColor" />
+      <rect x="85" y="5" width="10" height="10" fill="white" />
+      <rect x="0" y="80" width="20" height="20" fill="currentColor" />
+      <rect x="5" y="85" width="10" height="10" fill="white" />
+      <rect x="30" y="10" width="10" height="5" fill="currentColor" />
+      <rect x="45" y="5" width="5" height="15" fill="currentColor" />
+      <rect x="60" y="0" width="10" height="10" fill="currentColor" />
+      <rect x="35" y="30" width="15" height="10" fill="currentColor" />
+      <rect x="10" y="35" width="10" height="15" fill="currentColor" />
+      <rect x="55" y="45" width="20" height="5" fill="currentColor" />
+      <rect x="30" y="60" width="15" height="15" fill="currentColor" />
+      <rect x="80" y="30" width="10" height="20" fill="currentColor" />
+      <rect x="75" y="60" width="15" height="10" fill="currentColor" />
+      <rect x="50" y="80" width="25" height="15" fill="currentColor" />
+      <rect x="85" y="85" width="10" height="10" fill="white" />
+    </svg>
   );
 
   return (
@@ -363,7 +342,6 @@ export default function PatientView({ patientName, patientEmail, onLogout }: Pat
         <AppSidebar
           accent="primary"
           brand={{ icon: Activity, title: 'Mi Salud', subtitle: 'Portal de Pacientes' }}
-          sidebarExtra={qrSidebarExtra}
           items={[
             { id: 'recipes', name: 'Récipes Médicos', icon: FileText },
             { id: 'proposals', name: 'Propuestas de Compra', icon: FileSpreadsheet },
@@ -389,6 +367,12 @@ export default function PatientView({ patientName, patientEmail, onLogout }: Pat
       header={({ onMenuClick }) => (
         <AppHeader
           onMenuClick={onMenuClick}
+          actions={
+            <Button variant="outline" size="sm" onClick={() => setIsCredentialModalOpen(true)}>
+              <QrCode className="h-4 w-4" />
+              <span className="hidden sm:inline">Credencial QR</span>
+            </Button>
+          }
           profileInitials={profileName
             .split(' ')
             .filter(Boolean)
@@ -1366,6 +1350,36 @@ export default function PatientView({ patientName, patientEmail, onLogout }: Pat
           </div>
         </div>
       )}
+
+      <Modal
+        open={isCredentialModalOpen}
+        onClose={() => setIsCredentialModalOpen(false)}
+        title="Credencial QR Dinámica"
+        size="md"
+      >
+        <ModalBody className="space-y-4">
+          <p className="text-xs text-surface-400 text-center">
+            Presente este código en el mostrador para validar su identidad y retirar medicamentos.
+          </p>
+          <div className="flex flex-col items-center bg-white p-5 rounded-xl shadow-inner border border-surface-700/10 mx-auto max-w-xs">
+            {credentialQrSvg}
+            <div className="mt-3 text-center">
+              <span className="text-xs font-mono font-bold text-surface-800 tracking-wider block">
+                TOKEN: {qrToken}
+              </span>
+              <p className="text-[10px] text-surface-500 font-medium mt-1">
+                Vence en <span className="text-secondary-500 font-bold">{qrSecondsLeft}s</span>
+              </p>
+            </div>
+          </div>
+          <div className="flex justify-center">
+            <Button variant="outline" size="sm" onClick={handleRefreshQR}>
+              <RefreshCw className="h-3.5 w-3.5" />
+              Rotar credencial
+            </Button>
+          </div>
+        </ModalBody>
+      </Modal>
 
       {/* Mandatory Terms & Conditions Modal */}
       {isTermsModalOpen && (

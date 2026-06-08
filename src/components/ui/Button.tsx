@@ -13,11 +13,11 @@ const variantClasses: Record<ButtonVariant, string> = {
   primary:
     'bg-white text-surface-950 hover:bg-surface-100 border border-white/90 shadow-sm',
   secondary:
-    'bg-surface-800 text-white hover:bg-surface-700 border border-surface-700',
+    'bg-surface-800 text-foreground hover:bg-surface-700 border border-surface-700',
   ghost:
-    'bg-transparent text-surface-400 hover:text-white hover:bg-surface-800 border border-transparent',
+    'bg-transparent text-surface-400 hover:text-foreground hover:bg-surface-800 border border-transparent',
   outline:
-    'bg-surface-900 hover:bg-surface-800 border border-surface-700 text-surface-200 hover:text-white',
+    'bg-surface-900 hover:bg-surface-800 border border-surface-700 text-surface-200 hover:text-foreground',
 };
 
 const sizeClasses: Record<ButtonSize, string> = {
