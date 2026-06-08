@@ -16,7 +16,7 @@ interface AuditLogEntry {
 
 const DEFAULT_AUDIT_LOG: AuditLogEntry[] = [
   { id: 'AUD-301', timestamp: '2026-05-15 09:30:12', adminName: 'Carlos Mendoza', action: 'Configuración Inicial de Tasa', previousValue: '0.0%', newValue: '8.0%', status: 'Aplicado' },
-  { id: 'AUD-302', timestamp: '2026-05-28 14:22:05', adminName: 'Carlos Mendoza', action: 'Actualización por Acuerdo Farma-Humana', previousValue: '8.0%', newValue: '8.0%', status: 'Aplicado' },
+  { id: 'AUD-302', timestamp: '2026-05-28 14:22:05', adminName: 'Carlos Mendoza', action: 'Actualización por Acuerdo Comercial', previousValue: '8.0%', newValue: '8.0%', status: 'Aplicado' },
 ];
 
 export default function FinancialSettingsView() {
@@ -80,7 +80,7 @@ export default function FinancialSettingsView() {
     <div className="space-y-6">
       <PageHeader
         title="Políticas Financieras y Comisiones"
-        description="Establezca los incentivos de Farma-Humana y administre las comisiones de los médicos."
+        description="Establezca los incentivos comerciales y administre las comisiones de los médicos."
         actions={
           <Button variant="outline" onClick={() => setIsAuditLogOpen(true)}>
             <History className="h-4 w-4" />
@@ -179,7 +179,7 @@ export default function FinancialSettingsView() {
         <div className="p-3 bg-surface-950 border border-surface-850 rounded-xl flex gap-2.5 text-[10px] text-surface-400">
           <ShieldAlert className="h-4.5 w-4.5 text-surface-400 shrink-0" />
           <span>
-            Al actualizar la tasa, la plataforma notificará en espejo a Farma-Humana y los cálculos de comisiones médicas vigentes se recalcularán automáticamente en caliente.
+            Al actualizar la tasa, la plataforma notificará a la red de distribución y los cálculos de comisiones médicas vigentes se recalcularán automáticamente en caliente.
           </span>
         </div>
 

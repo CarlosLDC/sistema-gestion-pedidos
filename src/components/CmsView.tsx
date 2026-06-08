@@ -40,7 +40,7 @@ const themePreviewClasses = {
   },
 } as const;
 
-const DEFAULT_TERMS = `Términos y Condiciones de Farma-Humana:
+const DEFAULT_TERMS = `Términos y Condiciones del Servicio:
 1. Aceptación de los Términos: Al acceder y utilizar este portal de salud digital, el usuario acepta de manera explícita los términos de servicio expuestos en el presente acuerdo.
 2. Prescripción Médica: La compra de medicamentos controlados requerirá de la validación física u homologación digital del récipe emitido por un médico colegiado verificado en Zenith OMS.
 3. Descuentos y Promociones: Los descuentos otorgados son exclusivos del programa de incentivos del médico tratante y no son transferibles.`;
@@ -55,11 +55,11 @@ export default function CmsView() {
     themeColor: 'primary',
     termsAndConditions: DEFAULT_TERMS,
     privacyPolicy: DEFAULT_PRIVACY,
-    deliveryPolicy: 'Las entregas a domicilio estándar se procesan en un lapso de 24 horas hábiles a partir de la confirmación del pago en Farma-Humana.'
+    deliveryPolicy: 'Las entregas a domicilio estándar se procesan en un lapso de 24 horas hábiles a partir de la confirmación del pago en la plataforma.'
   });
 
   const [uploadedFiles, setUploadedFiles] = useState<{ name: string; size: string; type: string }[]>([
-    { name: 'logo_farma_humana_vector.png', size: '142 KB', type: 'image/png' },
+    { name: 'logo_zenith_vector.png', size: '142 KB', type: 'image/png' },
     { name: 'banner_promocional_junio.jpg', size: '1.2 MB', type: 'image/jpeg' }
   ]);
 
@@ -177,7 +177,7 @@ export default function CmsView() {
                 Descuento de Consulta
               </span>
               <h4 className="zenith-section-title leading-tight">Su médico le ha otorgado beneficios exclusivos</h4>
-              <p className="text-2xs text-surface-400">Canjee su récipe digital en cualquier sucursal afiliada a Farma-Humana.</p>
+              <p className="text-2xs text-surface-400">Canjee su récipe digital en cualquier sucursal afiliada de la red.</p>
             </div>
             <div className={`h-20 w-20 rounded-2xl ${previewTheme.iconBox} flex items-center justify-center`}>
               <Palette className={`h-10 w-10 ${previewTheme.icon}`} />
@@ -339,7 +339,7 @@ export default function CmsView() {
             <div className="space-y-4">
               <div className="space-y-1.5">
                 <div className="flex justify-between items-center">
-                  <label className="zenith-field-label">Términos y Condiciones de Farma-Humana</label>
+                  <label className="zenith-field-label">Términos y Condiciones del Servicio</label>
                   <span className="text-[9px] text-surface-500">Requerido en el carrito del paciente</span>
                 </div>
                 <textarea

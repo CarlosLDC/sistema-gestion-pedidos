@@ -77,10 +77,10 @@ const MOCK_PATIENTS: PatientRecord[] = [
 ];
 
 const MOCK_MOVEMENTS: StockMovement[] = [
-  { id: 'MOV-104', medication: 'Ramipril 5mg', type: 'Salida', quantity: 30, date: '08 Jun, 2026', sourceDest: 'Farma-Humana Central' },
-  { id: 'MOV-103', medication: 'Metformina 850mg', type: 'Salida', quantity: 60, date: '05 Jun, 2026', sourceDest: 'Farma-Humana Norte' },
-  { id: 'MOV-102', medication: 'Atorvastatina 20mg', type: 'Salida', quantity: 30, date: '01 Jun, 2026', sourceDest: 'Farma-Humana Sur' },
-  { id: 'MOV-101', medication: 'Ibuprofeno 600mg', type: 'Entrada', quantity: 500, date: '29 May, 2026', sourceDest: 'Laboratorio Humana S.A.' },
+  { id: 'MOV-104', medication: 'Ramipril 5mg', type: 'Salida', quantity: 30, date: '08 Jun, 2026', sourceDest: 'Farmacia Central' },
+  { id: 'MOV-103', medication: 'Metformina 850mg', type: 'Salida', quantity: 60, date: '05 Jun, 2026', sourceDest: 'Farmacia Norte' },
+  { id: 'MOV-102', medication: 'Atorvastatina 20mg', type: 'Salida', quantity: 30, date: '01 Jun, 2026', sourceDest: 'Farmacia Sur' },
+  { id: 'MOV-101', medication: 'Ibuprofeno 600mg', type: 'Entrada', quantity: 500, date: '29 May, 2026', sourceDest: 'Laboratorio Proveedor S.A.' },
   { id: 'MOV-100', medication: 'Amoxicilina 875mg', type: 'Entrada', quantity: 200, date: '25 May, 2026', sourceDest: 'Droguería Médica S.A.' }
 ];
 
@@ -153,7 +153,7 @@ export default function DashboardView({ orders, products, onNavigate, onSelectOr
   const handleExport = (type: 'Excel' | 'CSV') => {
     setIsExporting(true);
     setExportProgress(0);
-    setExportMsg(`Generando archivo de auditoría contable Farma-Humana (.${type.toLowerCase()})...`);
+    setExportMsg(`Generando archivo de auditoría contable (.${type.toLowerCase()})...`);
   };
 
   useEffect(() => {
@@ -292,7 +292,7 @@ export default function DashboardView({ orders, products, onNavigate, onSelectOr
         />
         <StatCard
           icon={ShoppingBag}
-          label="Transacciones Farma-Humana"
+          label="Transacciones del Sistema"
           value={orders.length}
           hint={
             <>
@@ -443,7 +443,7 @@ export default function DashboardView({ orders, products, onNavigate, onSelectOr
             <Database className="h-5 w-5 text-surface-400" />
             <div>
               <h4 className="zenith-section-title">Buscador y Consultas de Base de Datos</h4>
-              <p className="text-xs text-surface-400">Consulte tablas relacionales en espejo con la sucursal Farma-Humana.</p>
+              <p className="text-xs text-surface-400">Consulte tablas relacionales sincronizadas con las sucursales de la red.</p>
             </div>
           </div>
           

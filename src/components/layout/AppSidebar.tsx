@@ -50,7 +50,7 @@ export default function AppSidebar({
   profile,
   onLogout,
   logoutLabel = 'Cerrar Sesión',
-  logoutVariant = 'full',
+  logoutVariant = 'icon',
   className,
 }: AppSidebarProps) {
   const BrandIcon = brand.icon;

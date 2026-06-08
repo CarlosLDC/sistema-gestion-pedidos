@@ -118,7 +118,7 @@ export default function PatientView({ patientName, patientEmail, onLogout }: Pat
     { id: 'prop-1', medication: 'Ramipril 5mg (28 Comprimidos)', quantity: 1, unitPrice: 12.50, discountPercent: 20 },
     { id: 'prop-2', medication: 'Aspirina 100mg (30 Comprimidos)', quantity: 1, unitPrice: 6.00, discountPercent: 10 }
   ]);
-  const [selectedBranch, setSelectedBranch] = useState('Farma-Humana Central (Av. de la Castellana 210)');
+  const [selectedBranch, setSelectedBranch] = useState('Farmacia Central (Av. de la Castellana 210)');
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [isTermsModalOpen, setIsTermsModalOpen] = useState(false);
 
@@ -237,7 +237,7 @@ export default function PatientView({ patientName, patientEmail, onLogout }: Pat
 
   const handleConfirmOrder = () => {
     if (!termsAccepted) {
-      alert('Debe aceptar los Términos y Condiciones de Farma-Humana.');
+      alert('Debe aceptar los Términos y Condiciones del servicio.');
       return;
     }
     setPaymentTimeLeft(900);
@@ -313,7 +313,7 @@ export default function PatientView({ patientName, patientEmail, onLogout }: Pat
   };
 
   const qrSidebarExtra = (
-    <div className="p-4 border-b border-surface-855 bg-surface-950/30 space-y-3">
+    <div className="p-4 border-b border-surface-900 bg-surface-950/30 space-y-3">
       <div className="flex justify-between items-center text-[10px] font-bold text-surface-400 uppercase tracking-wider">
         <span>Credencial QR Dinámica</span>
         <button
@@ -362,9 +362,7 @@ export default function PatientView({ patientName, patientEmail, onLogout }: Pat
       sidebar={
         <AppSidebar
           accent="primary"
-          className="bg-surface-900 border-surface-855"
           brand={{ icon: Activity, title: 'Mi Salud', subtitle: 'Portal de Pacientes' }}
-          sectionLabel="Mi Historial"
           sidebarExtra={qrSidebarExtra}
           items={[
             { id: 'recipes', name: 'Récipes Médicos', icon: FileText },
@@ -374,23 +372,34 @@ export default function PatientView({ patientName, patientEmail, onLogout }: Pat
           activeId={activeNavId}
           onNavigate={handleNav}
           profile={{
-            initials: 'SP',
+            initials: profileName
+              .split(' ')
+              .filter(Boolean)
+              .map((part) => part[0])
+              .slice(0, 2)
+              .join('')
+              .toUpperCase(),
             name: profileName,
             role: 'Paciente ID #8849',
-            avatarClassName: 'bg-surface-800 border border-surface-700',
           }}
           onLogout={onLogout}
+          logoutVariant="icon"
         />
       }
       header={({ onMenuClick }) => (
         <AppHeader
           onMenuClick={onMenuClick}
-          statusLabel="Portal del Paciente Activo"
-          showNotifications={false}
-          trailing={
-            <span className="text-xs font-bold text-surface-350 truncate max-w-[120px] sm:max-w-none">
-              {patientEmail}
-            </span>
+          profileInitials={profileName
+            .split(' ')
+            .filter(Boolean)
+            .map((part) => part[0])
+            .slice(0, 2)
+            .join('')
+            .toUpperCase()}
+          profileName={
+            profileName.split(' ')[1]
+              ? `${profileName.split(' ')[0]} ${profileName.split(' ')[1][0]}.`
+              : profileName.split(' ')[0]
           }
         />
       )}
@@ -656,7 +665,7 @@ export default function PatientView({ patientName, patientEmail, onLogout }: Pat
                         <span className="text-xs text-surface-350">
                           {termsAccepted 
                             ? 'Términos y condiciones aceptados.' 
-                            : 'Requiere la aceptación de Términos y Condiciones Farma-Humana.'
+                            : 'Requiere la aceptación de los Términos y Condiciones del servicio.'
                           }
                         </span>
                       </div>
@@ -712,9 +721,9 @@ export default function PatientView({ patientName, patientEmail, onLogout }: Pat
                           onChange={(e) => setSelectedBranch(e.target.value)}
                           className="w-full bg-surface-950/60 border border-surface-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-primary-500 cursor-pointer"
                         >
-                          <option value="Farma-Humana Central (Av. de la Castellana 210)">Farma-Humana Central (Av. Castellana 210)</option>
-                          <option value="Farma-Humana Norte (Calle Serrano 80)">Farma-Humana Norte (Calle Serrano 80)</option>
-                          <option value="Farma-Humana Sur (Av. de la Albufera 14)">Farma-Humana Sur (Av. Albufera 14)</option>
+                          <option value="Farmacia Central (Av. de la Castellana 210)">Farmacia Central (Av. Castellana 210)</option>
+                          <option value="Farmacia Norte (Calle Serrano 80)">Farmacia Norte (Calle Serrano 80)</option>
+                          <option value="Farmacia Sur (Av. de la Albufera 14)">Farmacia Sur (Av. Albufera 14)</option>
                         </select>
                       </div>
                     </div>
@@ -741,7 +750,7 @@ export default function PatientView({ patientName, patientEmail, onLogout }: Pat
               <div className="space-y-6 animate-in fade-in duration-300">
                 <PageHeader
                   title="Pasarela de Confirmación de Pago"
-                  description="Registre el pago de sus medicamentos reservados en el almacén de Farma-Humana."
+                  description="Registre el pago de sus medicamentos reservados en el almacén de distribución."
                   actions={
                     <div className="bg-secondary-500/10 border border-secondary-500/20 px-4 py-2.5 rounded-2xl flex items-center gap-3 shrink-0">
                       <Clock className="h-5 w-5 text-secondary-400 animate-pulse" />
@@ -848,7 +857,7 @@ export default function PatientView({ patientName, patientEmail, onLogout }: Pat
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-surface-450">
                             <div>
                               <p className="font-semibold text-surface-500">Titular de la Cuenta</p>
-                              <p className="font-bold text-white mt-0.5">Farma-Humana España S.L.</p>
+                              <p className="font-bold text-white mt-0.5">Zenith Farmacia S.L.</p>
                             </div>
                             <div>
                               <p className="font-semibold text-surface-500">IBAN de Cuenta</p>
@@ -997,7 +1006,7 @@ export default function PatientView({ patientName, patientEmail, onLogout }: Pat
                     
                     <div className="flex justify-between items-start border-b border-surface-200 pb-4">
                       <div>
-                        <h4 className="text-sm font-bold text-surface-950">Farma-Humana España S.L.</h4>
+                        <h4 className="text-sm font-bold text-surface-950">Zenith Farmacia S.L.</h4>
                         <p className="text-2xs text-surface-500">CIF: B-12994821 • Av. Castellana 210</p>
                       </div>
                       <div className="text-right">
@@ -1367,7 +1376,7 @@ export default function PatientView({ patientName, patientEmail, onLogout }: Pat
             <div className="flex items-center justify-between px-6 py-4 border-b border-surface-850 bg-surface-950/40">
               <h3 className="zenith-section-title flex items-center gap-2">
                 <ShieldCheck className="h-5 w-5 text-primary-400" />
-                <span>Términos y Condiciones Farma-Humana</span>
+                <span>Términos y Condiciones del Servicio</span>
               </h3>
               <button
                 onClick={() => setIsTermsModalOpen(false)}
@@ -1380,7 +1389,7 @@ export default function PatientView({ patientName, patientEmail, onLogout }: Pat
             <div className="p-6 space-y-4 overflow-y-auto text-xs text-surface-400 leading-relaxed">
               <p className="font-bold text-white">1. Tratamiento de Datos Personales y de Salud</p>
               <p>
-                Al aceptar estos términos, autoriza expresamente a Farma-Humana al tratamiento de sus datos sensibles de salud, incluyendo prescripciones médicas, medicamentos recetados y diagnóstico clínico relacionado, de acuerdo con la Ley Orgánica de Protección de Datos de Carácter Personal (LOPD). Sus datos serán confidenciales y procesados únicamente para fines de expendio farmacéutico.
+                Al aceptar estos términos, autoriza expresamente al operador del servicio el tratamiento de sus datos sensibles de salud, incluyendo prescripciones médicas, medicamentos recetados y diagnóstico clínico relacionado, de acuerdo con la Ley Orgánica de Protección de Datos de Carácter Personal (LOPD). Sus datos serán confidenciales y procesados únicamente para fines de expendio farmacéutico.
               </p>
               
               <p className="font-bold text-white">2. Despacho y Recogida en Sucursales</p>
@@ -1402,7 +1411,7 @@ export default function PatientView({ patientName, patientEmail, onLogout }: Pat
                   onChange={(e) => setTermsAccepted(e.target.checked)}
                   className="mt-0.5 rounded text-primary-500 bg-surface-950 border-surface-800 focus:ring-0 cursor-pointer"
                 />
-                <span>He leído y acepto expresamente los términos de tratamiento de datos y políticas de retiro físico de Farma-Humana.</span>
+                <span>He leído y acepto expresamente los términos de tratamiento de datos y políticas de retiro físico del servicio.</span>
               </label>
 
               <div className="flex justify-end gap-2">

@@ -7,7 +7,6 @@ import {
   FileText, 
   PlusCircle, 
   LogOut, 
-  Heart, 
   ShieldAlert, 
   Clock,
   Check,
@@ -113,10 +112,10 @@ const MOCK_COMMISSIONS: CommissionEntry[] = [
 ];
 
 const MOCK_RECIPE_LOG: RecipeLogEntry[] = [
-  { id: 'REC-2026-904', date: '08 Jun, 2026', patientName: 'Sofía Peralta', patientId: 'PX-992-8849', medications: ['Ramipril 5mg', 'Aspirina 100mg'], branch: 'Farma-Humana Central', status: 'Confirmado' },
-  { id: 'REC-2026-901', date: '05 Jun, 2026', patientName: 'Carlos Mendoza', patientId: 'PX-992-1029', medications: ['Metformina 850mg'], branch: 'Farma-Humana Norte', status: 'Retirado' },
-  { id: 'REC-2026-887', date: '01 Jun, 2026', patientName: 'Ana Gómez Román', patientId: 'PX-992-0344', medications: ['Atorvastatina 20mg'], branch: 'Farma-Humana Sur', status: 'Retirado' },
-  { id: 'REC-2026-881', date: '28 May, 2026', patientName: 'Luis Rodríguez Silva', patientId: 'PX-992-0811', medications: ['Ibuprofeno 600mg'], branch: 'Farma-Humana Central', status: 'Enviado' },
+  { id: 'REC-2026-904', date: '08 Jun, 2026', patientName: 'Sofía Peralta', patientId: 'PX-992-8849', medications: ['Ramipril 5mg', 'Aspirina 100mg'], branch: 'Farmacia Central', status: 'Confirmado' },
+  { id: 'REC-2026-901', date: '05 Jun, 2026', patientName: 'Carlos Mendoza', patientId: 'PX-992-1029', medications: ['Metformina 850mg'], branch: 'Farmacia Norte', status: 'Retirado' },
+  { id: 'REC-2026-887', date: '01 Jun, 2026', patientName: 'Ana Gómez Román', patientId: 'PX-992-0344', medications: ['Atorvastatina 20mg'], branch: 'Farmacia Sur', status: 'Retirado' },
+  { id: 'REC-2026-881', date: '28 May, 2026', patientName: 'Luis Rodríguez Silva', patientId: 'PX-992-0811', medications: ['Ibuprofeno 600mg'], branch: 'Farmacia Central', status: 'Enviado' },
 ];
 
 export default function DoctorView({ doctorName, doctorEmail, onLogout }: DoctorViewProps) {
@@ -378,10 +377,8 @@ export default function DoctorView({ doctorName, doctorEmail, onLogout }: Doctor
         contentClassName="max-w-6xl"
         sidebar={
           <AppSidebar
-            accent="secondary"
-            className="bg-surface-900 border-surface-850"
-            brand={{ icon: Heart, title: 'Portal Médico', subtitle: 'Sistema de Salud' }}
-            sectionLabel="Menú Principal"
+            accent="primary"
+            brand={{ icon: Activity, title: 'Portal Médico', subtitle: 'Sistema de Salud' }}
             items={[
               { id: 'agenda', name: 'Agenda del Día', icon: Calendar },
               { id: 'reception', name: 'Recepción y Escáner', icon: QrCode },
@@ -394,24 +391,33 @@ export default function DoctorView({ doctorName, doctorEmail, onLogout }: Doctor
               setActiveTab(id as 'agenda' | 'reception' | 'prescription' | 'commissions' | 'profile')
             }
             profile={{
-              initials: 'AR',
+              initials: doctorName
+                .replace(/^Dr\.\s*/i, '')
+                .split(' ')
+                .filter(Boolean)
+                .map((part) => part[0])
+                .slice(0, 2)
+                .join('')
+                .toUpperCase(),
               name: doctorName,
               role: 'Cardiólogo (M.P. 28.490/7)',
-              avatarClassName: 'bg-secondary-600 border-none',
             }}
             onLogout={onLogout}
+            logoutVariant="icon"
           />
         }
         header={({ onMenuClick }) => (
           <AppHeader
             onMenuClick={onMenuClick}
-            statusLabel="Consulta en Curso"
-            showNotifications={false}
-            trailing={
-              <span className="text-xs font-bold text-surface-350 truncate max-w-[120px] sm:max-w-none">
-                {doctorEmail}
-              </span>
-            }
+            profileInitials={doctorName
+              .replace(/^Dr\.\s*/i, '')
+              .split(' ')
+              .filter(Boolean)
+              .map((part) => part[0])
+              .slice(0, 2)
+              .join('')
+              .toUpperCase()}
+            profileName={doctorName.replace(/^Dr\.\s*/i, '').split(' ')[0] ?? doctorName}
           />
         )}
       >
@@ -750,7 +756,7 @@ export default function DoctorView({ doctorName, doctorEmail, onLogout }: Doctor
                     <div className="lg:col-span-5 bg-surface-900/60 border border-surface-800 rounded-3xl p-6 backdrop-blur-md space-y-4 flex flex-col max-h-[600px]">
                       <div>
                         <h3 className="zenith-section-title">Buscador de Medicamentos</h3>
-                        <p className="text-xs text-surface-400">Catálogo indexado de la farmacia Farma-Humana.</p>
+                        <p className="text-xs text-surface-400">Catálogo indexado de medicamentos del sistema.</p>
                       </div>
 
                       {/* Search Input */}
@@ -951,7 +957,7 @@ export default function DoctorView({ doctorName, doctorEmail, onLogout }: Doctor
                             <PlusCircle className="h-10 w-10 text-surface-750 mx-auto" />
                             <h4 className="font-bold text-white text-xs">Prescripción Vacía</h4>
                             <p className="text-[10px] text-surface-450 max-w-xs mx-auto">
-                              Seleccione medicamentos en el catálogo de Farma-Humana de la izquierda para agregarlos a la prescripción del paciente.
+                              Seleccione medicamentos en el catálogo de la izquierda para agregarlos a la prescripción del paciente.
                             </p>
                           </div>
                         )}
@@ -1045,7 +1051,7 @@ export default function DoctorView({ doctorName, doctorEmail, onLogout }: Doctor
                       <div className="flex justify-between items-center">
                         <div>
                           <h3 className="zenith-section-title">Libro de Comisiones</h3>
-                          <p className="text-xs text-surface-400">Incentivos asignados por venta efectiva en Farma-Humana.</p>
+                          <p className="text-xs text-surface-400">Incentivos asignados por venta efectiva en la red de farmacias.</p>
                         </div>
                         <span className="text-[10px] bg-secondary-500/10 text-secondary-400 border border-secondary-500/20 px-2 py-0.5 rounded font-bold">Tasa: {commissionRate}%</span>
                       </div>
