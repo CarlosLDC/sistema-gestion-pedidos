@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { LayoutDashboard, ShoppingBag, Package, Users, Settings, Activity, LogOut, Stethoscope } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, Package, Users, Settings, Activity, LogOut, Stethoscope, DollarSign } from 'lucide-react';
 
 interface SidebarProps {
   activeTab: string;
@@ -18,6 +18,7 @@ export default function Sidebar({ activeTab, setActiveTab, pendingOrdersCount, l
     { id: 'products', name: 'Productos', icon: Package, badge: lowStockCount > 0 ? lowStockCount : null, badgeColor: 'bg-rose-500 text-white animate-pulse' },
     { id: 'customers', name: 'Clientes', icon: Users, badge: null },
     { id: 'doctors', name: 'Gestión Médicos', icon: Stethoscope, badge: null },
+    { id: 'financials', name: 'Comisiones', icon: DollarSign, badge: null },
     { id: 'cms', name: 'Configuración CMS', icon: Settings, badge: null },
   ];
 

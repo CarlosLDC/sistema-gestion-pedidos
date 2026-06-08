@@ -16,6 +16,7 @@ import DoctorView from '../components/DoctorView';
 import PatientView from '../components/PatientView';
 import CmsView from '../components/CmsView';
 import DoctorsManagerView from '../components/DoctorsManagerView';
+import FinancialSettingsView from '../components/FinancialSettingsView';
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -351,6 +352,10 @@ export default function Home() {
 
             {activeTab === 'doctors' && (
               <DoctorsManagerView />
+            )}
+
+            {activeTab === 'financials' && (
+              <FinancialSettingsView />
             )}
           </div>
         </main>

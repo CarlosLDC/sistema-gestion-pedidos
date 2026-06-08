@@ -130,6 +130,21 @@ export default function DoctorView({ doctorName, doctorEmail, onLogout }: Doctor
   const [profilePhone, setProfilePhone] = useState('+34 910 334 821');
   const [profileSaveMsg, setProfileSaveMsg] = useState('');
 
+  // Dynamic commission rate state
+  const [commissionRate, setCommissionRate] = useState<number>(8);
+  
+  useEffect(() => {
+    const loadRate = () => {
+      const savedRate = localStorage.getItem('zenith_commission_rate');
+      if (savedRate) {
+        setCommissionRate(parseFloat(savedRate));
+      }
+    };
+    loadRate();
+    window.addEventListener('zenith_commission_update', loadRate);
+    return () => window.removeEventListener('zenith_commission_update', loadRate);
+  }, []);
+
   const [appointments, setAppointments] = useState([
     { id: 'CITA-201', patientName: 'Sofía Peralta', time: '09:00 AM', reason: 'Control Cardiológico', status: 'Atendido' },
     { id: 'CITA-202', patientName: 'Carlos Mendoza', time: '10:30 AM', reason: 'Evaluación General', status: 'Pendiente' },
@@ -1111,13 +1126,22 @@ export default function DoctorView({ doctorName, doctorEmail, onLogout }: Doctor
 
             {/* VIEW TAB 4: COMMISSIONS & CLINICAL HISTORY (Pantalla M.3) */}
             {activeTab === 'commissions' && (() => {
-              const totalAccredited = MOCK_COMMISSIONS
+              const dynamicCommissions = MOCK_COMMISSIONS.map(c => {
+                const computedAmt = c.saleAmount * (commissionRate / 100);
+                return {
+                  ...c,
+                  commissionRate,
+                  commissionAmount: computedAmt
+                };
+              });
+
+              const totalAccredited = dynamicCommissions
                 .filter(c => c.status === 'Acreditado')
                 .reduce((sum, c) => sum + c.commissionAmount, 0);
-              const totalPending = MOCK_COMMISSIONS
+              const totalPending = dynamicCommissions
                 .filter(c => c.status === 'Pendiente')
                 .reduce((sum, c) => sum + c.commissionAmount, 0);
-              const totalSales = MOCK_COMMISSIONS.reduce((sum, c) => sum + c.saleAmount, 0);
+              const totalSales = dynamicCommissions.reduce((sum, c) => sum + c.saleAmount, 0);
               const totalRecipes = MOCK_RECIPE_LOG.length;
 
               return (
@@ -1175,12 +1199,12 @@ export default function DoctorView({ doctorName, doctorEmail, onLogout }: Doctor
                           <h3 className="font-bold text-white text-base">Libro de Comisiones</h3>
                           <p className="text-xs text-slate-400">Incentivos asignados por venta efectiva en Farma-Humana.</p>
                         </div>
-                        <span className="text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded font-bold">Tasa: 8%</span>
+                        <span className="text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded font-bold">Tasa: {commissionRate}%</span>
                       </div>
 
                       {/* Bar-chart style visualisation per entry */}
                       <div className="space-y-3">
-                        {MOCK_COMMISSIONS.map((entry) => (
+                        {dynamicCommissions.map((entry) => (
                           <div key={entry.id} className="space-y-1.5">
                             <div className="flex justify-between items-start text-xs">
                               <div className="min-w-0">
