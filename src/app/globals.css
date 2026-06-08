@@ -792,6 +792,15 @@ table th {
   color: var(--login-muted);
 }
 
+.login-view__demo-toggle {
+  color: var(--login-muted);
+}
+
+.login-view__demo-toggle:hover {
+  color: var(--login-foreground);
+  background: color-mix(in srgb, var(--login-foreground) 4%, transparent);
+}
+
 .login-view__quick-fill {
   background: var(--login-field);
   border-color: var(--login-field-border);

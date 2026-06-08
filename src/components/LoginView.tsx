@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Activity, AlertCircle, Eye, EyeOff, Loader2, Lock, Mail } from 'lucide-react';
+import { Activity, AlertCircle, ChevronDown, Eye, EyeOff, Loader2, Lock, Mail } from 'lucide-react';
 import { LoginAnimatedBackdrop } from './auth/LoginAnimatedBackdrop';
 import { ThemeToggle } from './theme';
 import { Label } from './ui';
@@ -16,6 +16,12 @@ const MOCK_USERS = [
   { email: 'medico@clinica.com', password: 'medico123', role: 'médico', name: 'Dr. Alejandro Ríos' },
   { email: 'paciente@clinica.com', password: 'paciente123', role: 'paciente', name: 'Sofía Peralta' },
 ];
+
+const TEST_ACCOUNT_LABELS: Record<string, string> = {
+  superadmin: 'Admin',
+  médico: 'Médico',
+  paciente: 'Paciente',
+};
 
 function LoginBrandMark({ className }: { className?: string }) {
   return (
@@ -41,6 +47,7 @@ export default function LoginView({ onLoginSuccess }: LoginViewProps) {
   const [passwordError, setPasswordError] = useState('');
   const [generalError, setGeneralError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [showTestAccounts, setShowTestAccounts] = useState(false);
 
   const handleQuickFill = (accEmail: string, accPass: string) => {
     setEmail(accEmail);
@@ -227,28 +234,38 @@ export default function LoginView({ onLoginSuccess }: LoginViewProps) {
           </form>
 
           <div className="login-view__divider mt-8 border-t pt-5">
-            <p className="login-view__footer-label text-center text-[10px] font-semibold uppercase tracking-wider">
-              Cuentas de prueba — clic para autorellenar
-            </p>
-            <div className="mt-3 grid grid-cols-1 gap-2">
-              {[
-                { label: 'Admin', email: 'admin@zenith.com', password: 'password123' },
-                { label: 'Médico', email: 'medico@clinica.com', password: 'medico123' },
-                { label: 'Paciente', email: 'paciente@clinica.com', password: 'paciente123' },
-              ].map((account) => (
-                <button
-                  key={account.email}
-                  type="button"
-                  onClick={() => handleQuickFill(account.email, account.password)}
-                  className="login-view__quick-fill flex items-center justify-between rounded-xl border px-3 py-2 text-left text-xs transition-all"
-                >
-                  <span>
-                    {account.label}: <code className="login-view__link font-mono">{account.email}</code>
-                  </span>
-                  <span className="login-view__mono font-mono text-2xs">Clave: {account.password}</span>
-                </button>
-              ))}
-            </div>
+            <button
+              type="button"
+              onClick={() => setShowTestAccounts((open) => !open)}
+              aria-expanded={showTestAccounts}
+              aria-controls="login-test-accounts"
+              className="login-view__demo-toggle mx-auto flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium transition-colors"
+            >
+              Cuentas de prueba
+              <ChevronDown
+                className={cn('h-3.5 w-3.5 transition-transform duration-200', showTestAccounts && 'rotate-180')}
+                aria-hidden
+              />
+            </button>
+
+            {showTestAccounts && (
+              <div id="login-test-accounts" className="mt-3 grid grid-cols-1 gap-2">
+                {MOCK_USERS.map((account) => (
+                  <button
+                    key={account.email}
+                    type="button"
+                    onClick={() => handleQuickFill(account.email, account.password)}
+                    className="login-view__quick-fill flex items-center justify-between rounded-xl border px-3 py-2 text-left text-xs transition-all"
+                  >
+                    <span>
+                      {TEST_ACCOUNT_LABELS[account.role] ?? account.role}:{' '}
+                      <code className="login-view__link font-mono">{account.email}</code>
+                    </span>
+                    <span className="login-view__mono font-mono text-2xs">Clave: {account.password}</span>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           <p className="login-view__panel-footnote mt-6 text-center text-xs">
