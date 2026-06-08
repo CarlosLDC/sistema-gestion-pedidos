@@ -276,10 +276,11 @@ export default function PatientView({ patientName, patientEmail, onLogout }: Pat
 
   // Profile Settings State (Pantalla P.5)
   const [profileName, setProfileName] = useState(patientName);
-  const [profilePhone, setProfilePhone] = useState('+58 412 600 1234');
-  const [deliveryAddress, setDeliveryAddress] = useState('Av. Francisco de Miranda, Edif. Parque Cristal, Piso 4B');
-  const [deliveryPostalCode, setDeliveryPostalCode] = useState('1060');
-  const [deliveryCity, setDeliveryCity] = useState('Caracas');
+  const [profilePhone, setProfilePhone] = useState('0412-6001234');
+  const [profileDocumentId] = useState('V-18.456.789');
+  const [deliveryAddress, setDeliveryAddress] = useState('Av. Francisco de Miranda, Urb. Campo Alegre, Edif. Parque Cristal, Piso 4B');
+  const [deliveryState, setDeliveryState] = useState('Distrito Capital');
+  const [deliveryMunicipio, setDeliveryMunicipio] = useState('Chacao');
   const [profileSuccessMsg, setProfileSuccessMsg] = useState('');
 
   // Calculations for Proposal
@@ -368,14 +369,14 @@ export default function PatientView({ patientName, patientEmail, onLogout }: Pat
     const savedName = localStorage.getItem('zenith_patient_name');
     const savedPhone = localStorage.getItem('zenith_patient_phone');
     const savedAddr = localStorage.getItem('zenith_patient_address');
-    const savedPC = localStorage.getItem('zenith_patient_pc');
-    const savedCity = localStorage.getItem('zenith_patient_city');
+    const savedState = localStorage.getItem('zenith_patient_state') ?? localStorage.getItem('zenith_patient_pc');
+    const savedMunicipio = localStorage.getItem('zenith_patient_municipio') ?? localStorage.getItem('zenith_patient_city');
 
     if (savedName) setProfileName(savedName);
     if (savedPhone) setProfilePhone(savedPhone);
     if (savedAddr) setDeliveryAddress(savedAddr);
-    if (savedPC) setDeliveryPostalCode(savedPC);
-    if (savedCity) setDeliveryCity(savedCity);
+    if (savedState) setDeliveryState(savedState);
+    if (savedMunicipio) setDeliveryMunicipio(savedMunicipio);
   }, []);
 
   // Rotate QR code token every 30 seconds
@@ -472,7 +473,7 @@ export default function PatientView({ patientName, patientEmail, onLogout }: Pat
     e.preventDefault();
     setProfileSuccessMsg('');
 
-    if (!profileName || !profilePhone || !deliveryAddress || !deliveryPostalCode || !deliveryCity) {
+    if (!profileName || !profilePhone || !deliveryAddress || !deliveryState || !deliveryMunicipio) {
       alert('Por favor rellene todos los campos del perfil.');
       return;
     }
@@ -480,8 +481,8 @@ export default function PatientView({ patientName, patientEmail, onLogout }: Pat
     localStorage.setItem('zenith_patient_name', profileName);
     localStorage.setItem('zenith_patient_phone', profilePhone);
     localStorage.setItem('zenith_patient_address', deliveryAddress);
-    localStorage.setItem('zenith_patient_pc', deliveryPostalCode);
-    localStorage.setItem('zenith_patient_city', deliveryCity);
+    localStorage.setItem('zenith_patient_state', deliveryState);
+    localStorage.setItem('zenith_patient_municipio', deliveryMunicipio);
 
     setProfileSuccessMsg('¡Perfil y dirección de delivery actualizados con éxito!');
 
@@ -1473,7 +1474,7 @@ export default function PatientView({ patientName, patientEmail, onLogout }: Pat
               <div className="max-w-2xl mx-auto space-y-6 animate-in fade-in duration-300">
                 <PageHeader
                   title="Configuración de Perfil"
-                  description="Modifique sus datos personales y actualice su dirección de delivery predeterminada."
+                  description="Actualice sus datos personales y la dirección de entrega predeterminada en Venezuela."
                 />
 
                 {profileSuccessMsg && (
@@ -1512,21 +1513,22 @@ export default function PatientView({ patientName, patientEmail, onLogout }: Pat
                           />
                         </div>
                         <div className="space-y-1.5">
-                          <label className="zenith-field-label">Teléfono de Contacto</label>
+                          <label className="zenith-field-label">Teléfono Móvil</label>
                           <input
                             type="text"
                             value={profilePhone}
                             onChange={(e) => setProfilePhone(e.target.value)}
-                            className="w-full bg-surface-950 border border-surface-850 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-primary-500 placeholder-surface-800"
+                            placeholder="0412-6001234"
+                            className="w-full bg-surface-950 border border-surface-850 rounded-xl px-3.5 py-2.5 text-xs text-white font-mono focus:outline-none focus:border-primary-500 placeholder-surface-800"
                           />
                         </div>
                         <div className="space-y-1.5">
-                          <label className="zenith-field-label">Documento de Identidad (Cédula/RIF)</label>
+                          <label className="zenith-field-label">Cédula de Identidad</label>
                           <input
                             type="text"
                             disabled
-                            value="12345678-SP"
-                            className="w-full bg-surface-950/40 border border-surface-850 rounded-xl px-3.5 py-2.5 text-xs text-surface-550 focus:outline-none cursor-not-allowed"
+                            value={profileDocumentId}
+                            className="w-full bg-surface-950/40 border border-surface-850 rounded-xl px-3.5 py-2.5 text-xs text-surface-550 font-mono focus:outline-none cursor-not-allowed"
                           />
                         </div>
                       </div>
@@ -1540,34 +1542,34 @@ export default function PatientView({ patientName, patientEmail, onLogout }: Pat
                       
                       <div className="space-y-4">
                         <div className="space-y-1.5">
-                          <label className="zenith-field-label">Calle, Número, Piso/Puerta</label>
+                          <label className="zenith-field-label">Dirección (Av., Urb., Edif., Piso)</label>
                           <input
                             type="text"
                             value={deliveryAddress}
                             onChange={(e) => setDeliveryAddress(e.target.value)}
-                            placeholder="Ej: Av. Francisco de Miranda, Edif. Parque Cristal, Piso 4B"
+                            placeholder="Ej: Av. Francisco de Miranda, Urb. Campo Alegre, Edif. Parque Cristal, Piso 4B"
                             className="w-full bg-surface-950 border border-surface-850 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-primary-500 placeholder-surface-800"
                           />
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <div className="space-y-1.5">
-                            <label className="zenith-field-label">Código Postal</label>
+                            <label className="zenith-field-label">Estado</label>
                             <input
                               type="text"
-                              value={deliveryPostalCode}
-                              onChange={(e) => setDeliveryPostalCode(e.target.value)}
-                              placeholder="Ej: 28013"
+                              value={deliveryState}
+                              onChange={(e) => setDeliveryState(e.target.value)}
+                              placeholder="Ej: Distrito Capital"
                               className="w-full bg-surface-950 border border-surface-850 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-primary-500 placeholder-surface-800"
                             />
                           </div>
                           <div className="space-y-1.5">
-                            <label className="zenith-field-label">Ciudad</label>
+                            <label className="zenith-field-label">Municipio</label>
                             <input
                               type="text"
-                              value={deliveryCity}
-                              onChange={(e) => setDeliveryCity(e.target.value)}
-                              placeholder="Ej: Caracas"
+                              value={deliveryMunicipio}
+                              onChange={(e) => setDeliveryMunicipio(e.target.value)}
+                              placeholder="Ej: Chacao"
                               className="w-full bg-surface-950 border border-surface-850 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-primary-500 placeholder-surface-800"
                             />
                           </div>

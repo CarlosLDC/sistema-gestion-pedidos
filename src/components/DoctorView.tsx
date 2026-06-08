@@ -197,7 +197,11 @@ export default function DoctorView({ doctorName, doctorEmail, onLogout }: Doctor
   const [bankAccountType, setBankAccountType] = useState<'Corriente' | 'Ahorro'>('Corriente');
   const [bankAccountNumber, setBankAccountNumber] = useState('0134-0100-01-0101234567');
   const [bankMobilePhone, setBankMobilePhone] = useState('0414-1234567');
-  const [profilePhone, setProfilePhone] = useState('+58 212 910 3348');
+  const [profilePhone, setProfilePhone] = useState('0212-9103348');
+  const [profileDocumentId] = useState('V-14.890.344');
+  const [consultorioAddress, setConsultorioAddress] = useState('Av. Las Delicias, Centro Médico Docente La Trinidad, Piso 3, Consultorio 12');
+  const [consultorioState, setConsultorioState] = useState('Miranda');
+  const [consultorioMunicipio, setConsultorioMunicipio] = useState('Baruta');
   const [profileSaveMsg, setProfileSaveMsg] = useState('');
 
   // Dynamic commission rate state
@@ -1258,7 +1262,7 @@ export default function DoctorView({ doctorName, doctorEmail, onLogout }: Doctor
               <div className="space-y-6 animate-in fade-in duration-300 max-w-2xl mx-auto">
                 <PageHeader
                   title="Configuración de Perfil"
-                  description="Credenciales validadas, datos bancarios para comisiones y cierre de sesión."
+                  description="Credenciales MPPS, consultorio, datos bancarios venezolanos y cierre de sesión."
                 />
 
                 {profileSaveMsg && (
@@ -1289,6 +1293,10 @@ export default function DoctorView({ doctorName, doctorEmail, onLogout }: Doctor
                       </div>
                       <div className="divide-y divide-surface-850 text-xs">
                         <div className="flex justify-between py-2">
+                          <span className="text-surface-500">Cédula de Identidad</span>
+                          <span className="text-surface-200 font-mono text-[10px]">{profileDocumentId}</span>
+                        </div>
+                        <div className="flex justify-between py-2">
                           <span className="text-surface-500">Correo Institucional</span>
                           <span className="text-surface-200 font-mono text-[10px]">{doctorEmail}</span>
                         </div>
@@ -1298,6 +1306,7 @@ export default function DoctorView({ doctorName, doctorEmail, onLogout }: Doctor
                             type="text"
                             value={profilePhone}
                             onChange={e => setProfilePhone(e.target.value)}
+                            placeholder="0212-9103348"
                             className="bg-transparent text-surface-200 text-[10px] font-mono text-right w-36 focus:outline-none focus:text-white"
                           />
                         </div>
@@ -1349,6 +1358,48 @@ export default function DoctorView({ doctorName, doctorEmail, onLogout }: Doctor
                     <p className="text-[10px] text-secondary-400 leading-snug">
                       <span className="font-bold">Verificación completada por Médico-Paciente:</span> Las credenciales han sido validadas contra el registro MPPS y el Colegio de Médicos de Venezuela, y se encuentran vigentes a la fecha.
                     </p>
+                  </div>
+                </div>
+
+                {/* Consultorio Address Card */}
+                <div className="bg-surface-900/60 border border-surface-800 rounded-3xl p-6 backdrop-blur-md space-y-5">
+                  <h3 className="zenith-section-title text-xs border-b border-surface-850 pb-2">
+                    Consultorio / Dirección Profesional
+                  </h3>
+
+                  <div className="grid grid-cols-1 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="zenith-field-label">Dirección (Av., Urb., Centro Médico, Consultorio)</label>
+                      <input
+                        type="text"
+                        value={consultorioAddress}
+                        onChange={e => setConsultorioAddress(e.target.value)}
+                        placeholder="Ej: Av. Las Delicias, Centro Médico La Trinidad, Piso 3, Consultorio 12"
+                        className="w-full bg-surface-950 border border-surface-850 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-secondary-500"
+                      />
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <label className="zenith-field-label">Estado</label>
+                        <input
+                          type="text"
+                          value={consultorioState}
+                          onChange={e => setConsultorioState(e.target.value)}
+                          placeholder="Ej: Miranda"
+                          className="w-full bg-surface-950 border border-surface-850 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-secondary-500"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="zenith-field-label">Municipio</label>
+                        <input
+                          type="text"
+                          value={consultorioMunicipio}
+                          onChange={e => setConsultorioMunicipio(e.target.value)}
+                          placeholder="Ej: Baruta"
+                          className="w-full bg-surface-950 border border-surface-850 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-secondary-500"
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -1449,7 +1500,7 @@ export default function DoctorView({ doctorName, doctorEmail, onLogout }: Doctor
                     <button
                       type="button"
                       onClick={() => {
-                        setProfileSaveMsg('Datos bancarios actualizados correctamente. Los cambios surtirán efecto en el próximo período de liquidación.');
+                        setProfileSaveMsg('Perfil, consultorio y datos bancarios actualizados. Los cambios bancarios surten efecto en el próximo período de liquidación.');
                         setTimeout(() => setProfileSaveMsg(''), 4000);
                       }}
                       className="px-6 py-2.5 bg-gradient-to-r from-secondary to-secondary-600 hover:from-secondary-600 hover:to-secondary-700 text-white rounded-xl text-xs font-extrabold shadow-md shadow-secondary-650/10 transition-all cursor-pointer"
