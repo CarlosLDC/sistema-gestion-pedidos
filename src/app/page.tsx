@@ -14,6 +14,11 @@ import {
   loadCustomersFromStorage,
   shouldRefreshCustomersStorage,
 } from '../lib/customerLocation';
+import {
+  PRODUCTS_DATA_VERSION,
+  loadProductsFromStorage,
+  shouldRefreshProductsStorage,
+} from '../lib/productCatalog';
 import { INITIAL_ORDERS, INITIAL_PRODUCTS, INITIAL_CUSTOMERS } from '../data/mockData';
 import { Bell, Activity } from 'lucide-react';
 import LoginView from '../components/LoginView';
@@ -48,18 +53,25 @@ export default function Home() {
     const localProducts = localStorage.getItem('zenith_products');
     const localCustomers = localStorage.getItem('zenith_customers');
 
-    if (localOrders) {
-      setOrders(JSON.parse(localOrders));
-    } else {
-      setOrders(INITIAL_ORDERS);
-      localStorage.setItem('zenith_orders', JSON.stringify(INITIAL_ORDERS));
-    }
+    const storedProductsVersion = Number(localStorage.getItem('zenith_products_version') ?? '0') || null;
+    const productsData = loadProductsFromStorage(localProducts);
+    const refreshProducts = shouldRefreshProductsStorage(storedProductsVersion, productsData);
 
-    if (localProducts) {
-      setProducts(JSON.parse(localProducts));
-    } else {
+    if (refreshProducts) {
       setProducts(INITIAL_PRODUCTS);
+      setOrders(INITIAL_ORDERS);
       localStorage.setItem('zenith_products', JSON.stringify(INITIAL_PRODUCTS));
+      localStorage.setItem('zenith_orders', JSON.stringify(INITIAL_ORDERS));
+      localStorage.setItem('zenith_products_version', String(PRODUCTS_DATA_VERSION));
+    } else {
+      setProducts(productsData);
+      if (localOrders) {
+        setOrders(JSON.parse(localOrders));
+      } else {
+        setOrders(INITIAL_ORDERS);
+        localStorage.setItem('zenith_orders', JSON.stringify(INITIAL_ORDERS));
+      }
+      localStorage.setItem('zenith_products', JSON.stringify(productsData));
     }
 
     const storedCustomersVersion = Number(localStorage.getItem('zenith_customers_version') ?? '0') || null;

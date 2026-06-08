@@ -4,6 +4,7 @@ import React, { useState, useMemo } from 'react';
 import { Search, Filter, Plus, Package, AlertTriangle, PlusCircle, MinusCircle, X } from 'lucide-react';
 import { Product } from '../types';
 import { formatCurrency } from '../lib/currency';
+import { DEFAULT_PHARMACY_CATEGORY, PHARMACY_CATEGORIES } from '../lib/productCatalog';
 import { PageHeader, Button, FilterBar, Input, Select, Modal, ModalBody, ModalFooter } from './ui';
 
 interface ProductsViewProps {
@@ -21,7 +22,7 @@ export default function ProductsView({ products, onUpdateStock, onAddProduct }: 
   const [newProductForm, setNewProductForm] = useState({
     name: '',
     sku: '',
-    category: 'Tecnología',
+    category: DEFAULT_PHARMACY_CATEGORY,
     price: '',
     stock: '',
     minStock: '',
@@ -74,12 +75,13 @@ export default function ProductsView({ products, onUpdateStock, onAddProduct }: 
       stock: parseInt(stock) || 0,
       minStock: parseInt(minStock) || 0,
       imageColor,
+      productType: 'medicamento',
     });
 
     setNewProductForm({
       name: '',
       sku: '',
-      category: 'Tecnología',
+      category: DEFAULT_PHARMACY_CATEGORY,
       price: '',
       stock: '',
       minStock: '',
@@ -92,7 +94,7 @@ export default function ProductsView({ products, onUpdateStock, onAddProduct }: 
     <div className="space-y-6">
       <PageHeader
         title="Gestión de Productos"
-        description="Control de inventario, stock y catálogo general."
+        description="Control de inventario, stock y catálogo de medicamentos y farmacia."
         actions={
           <Button onClick={() => setIsAddModalOpen(true)}>
             <Plus className="h-4 w-4" />
@@ -252,7 +254,7 @@ export default function ProductsView({ products, onUpdateStock, onAddProduct }: 
                   <input
                     type="text"
                     required
-                    placeholder="Ej: RAT-ERG-005"
+                    placeholder="Ej: RX-RAM-007"
                     value={newProductForm.sku}
                     onChange={(e) => setNewProductForm({ ...newProductForm, sku: e.target.value })}
                     className="w-full bg-surface-950 border border-surface-850 rounded-lg p-2.5 text-xs text-white placeholder-surface-600 focus:outline-none focus:border-primary-500 mt-1"
@@ -265,10 +267,11 @@ export default function ProductsView({ products, onUpdateStock, onAddProduct }: 
                     onChange={(e) => setNewProductForm({ ...newProductForm, category: e.target.value })}
                     className="w-full bg-surface-950 border border-surface-850 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-primary-500 mt-1"
                   >
-                    <option value="Tecnología">Tecnología</option>
-                    <option value="Audio">Audio</option>
-                    <option value="Oficina">Oficina</option>
-                    <option value="Hogar">Hogar</option>
+                    {PHARMACY_CATEGORIES.map((category) => (
+                      <option key={category} value={category}>
+                        {category}
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>

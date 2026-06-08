@@ -407,7 +407,7 @@ export default function DashboardView({ orders, products, onNavigate, onSelectOr
         <div className="bg-surface-900/60 border border-surface-800 rounded-2xl p-6 backdrop-blur-md flex flex-col justify-between">
           <div>
             <h4 className="zenith-section-title">Distribución por Categorías</h4>
-            <p className="text-xs text-surface-400">Ingresos consolidados por departamento.</p>
+            <p className="text-xs text-surface-400">Ingresos consolidados por categoría farmacéutica.</p>
           </div>
           
           <div className="my-4 space-y-4 flex-1 pt-2">
