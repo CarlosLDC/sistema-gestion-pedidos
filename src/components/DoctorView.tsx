@@ -20,7 +20,13 @@ import {
   AlertCircle,
   Activity,
   UserCheck,
-  ShieldCheck
+  ShieldCheck,
+  Search,
+  Sparkles,
+  Percent,
+  Send,
+  Trash2,
+  Plus
 } from 'lucide-react';
 
 interface DoctorViewProps {
@@ -42,9 +48,35 @@ interface LinkedPatient {
   medications: string[];
 }
 
+interface MedicalProduct {
+  id: string;
+  name: string;
+  sku: string;
+  category: string;
+  price: number;
+  stock: number;
+  description: string;
+}
+
+interface CartItem {
+  product: MedicalProduct;
+  posology: string;
+  discount: number;
+  aiOptimized: boolean;
+}
+
+const FARMA_HUMANA_CATALOG: MedicalProduct[] = [
+  { id: 'med-1', name: 'Ramipril 5mg', sku: 'RX-RAM-001', category: 'Cardiovascular', price: 12.50, stock: 120, description: 'Indicado para el tratamiento de la hipertensión arterial y reducción de morbilidad cardiovascular.' },
+  { id: 'med-2', name: 'Aspirina 100mg', sku: 'RX-ASP-002', category: 'Analgesia / Antiagregante', price: 6.00, stock: 450, description: 'Antiagregante plaquetario para la prevención cardiovascular.' },
+  { id: 'med-3', name: 'Amoxicilina 875mg + Ácido Clavulánico 125mg', sku: 'RX-AMO-003', category: 'Antibiótico', price: 18.20, stock: 80, description: 'Tratamiento de infecciones bacterianas del tracto respiratorio u oído.' },
+  { id: 'med-4', name: 'Metformina 850mg', sku: 'RX-MET-004', category: 'Antidiabético', price: 9.80, stock: 310, description: 'Tratamiento de la diabetes mellitus tipo 2 en adultos.' },
+  { id: 'med-5', name: 'Atorvastatina 20mg', sku: 'RX-ATO-005', category: 'Hipolipemiante', price: 15.40, stock: 150, description: 'Tratamiento para la reducción del colesterol total y LDL elevado.' },
+  { id: 'med-6', name: 'Ibuprofeno 600mg', sku: 'RX-IBU-006', category: 'Antiinflamatorio', price: 4.50, stock: 500, description: 'Alivio del dolor moderado y reducción de procesos febriles o inflamatorios.' }
+];
+
 export default function DoctorView({ doctorName, doctorEmail, onLogout }: DoctorViewProps) {
-  // Navigation active tab: 'agenda' | 'reception'
-  const [activeTab, setActiveTab] = useState<'agenda' | 'reception'>('agenda');
+  // Navigation active tab: 'agenda' | 'reception' | 'prescription'
+  const [activeTab, setActiveTab] = useState<'agenda' | 'reception' | 'prescription'>('agenda');
 
   const [appointments, setAppointments] = useState([
     { id: 'CITA-201', patientName: 'Sofía Peralta', time: '09:00 AM', reason: 'Control Cardiológico', status: 'Atendido' },
@@ -66,6 +98,12 @@ export default function DoctorView({ doctorName, doctorEmail, onLogout }: Doctor
   const [linkedPatient, setLinkedPatient] = useState<LinkedPatient | null>(null);
   const [isMirroring, setIsMirroring] = useState(false);
   const [mirrorProgress, setMirrorProgress] = useState(0);
+
+  // Prescription states (M.2)
+  const [searchQuery, setSearchQuery] = useState('');
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [aiLoadingId, setAiLoadingId] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState('');
 
   const handleAttendAppointment = (appointmentId: string, patientName: string) => {
     // Mark as attended
@@ -171,6 +209,88 @@ export default function DoctorView({ doctorName, doctorEmail, onLogout }: Doctor
     setManualIdInput('');
   };
 
+  // Cart operations
+  const addToCart = (product: MedicalProduct) => {
+    // Check if already in cart
+    if (cart.some(item => item.product.id === product.id)) {
+      return;
+    }
+    setCart([...cart, { product, posology: '', discount: 10, aiOptimized: false }]);
+  };
+
+  const removeFromCart = (productId: string) => {
+    setCart(cart.filter(item => item.product.id !== productId));
+  };
+
+  const updateCartPosology = (productId: string, val: string) => {
+    setCart(cart.map(item => 
+      item.product.id === productId ? { ...item, posology: val, aiOptimized: false } : item
+    ));
+  };
+
+  const updateCartDiscount = (productId: string, val: number) => {
+    setCart(cart.map(item => 
+      item.product.id === productId ? { ...item, discount: val } : item
+    ));
+  };
+
+  // AI assistant suggestion simulation
+  const handleAiPosologyAssist = (productId: string, name: string) => {
+    setAiLoadingId(productId);
+    
+    // Simulate AI clinical reasoning
+    setTimeout(() => {
+      let suggestedPosology = '';
+      if (name.includes('Ramipril')) {
+        suggestedPosology = 'Tomar 1 comprimido al día por la mañana en ayunas. Controlar presión arterial semanalmente.';
+      } else if (name.includes('Aspirina')) {
+        suggestedPosology = 'Tomar 1 comprimido diario durante el almuerzo con un vaso de agua completo.';
+      } else if (name.includes('Amoxicilina')) {
+        suggestedPosology = 'Tomar 1 comprimido cada 12 horas con las comidas por 7 días. Completar el ciclo indicado.';
+      } else if (name.includes('Metformina')) {
+        suggestedPosology = 'Tomar 1 comprimido por la noche con la cena para reducir malestar gastrointestinal.';
+      } else if (name.includes('Atorvastatina')) {
+        suggestedPosology = 'Tomar 1 comprimido por la noche antes de acostarse. Evitar consumo de pomelo.';
+      } else {
+        suggestedPosology = 'Tomar 1 comprimido cada 8 horas en caso de dolor o inflamación aguda.';
+      }
+
+      setCart(prevCart => prevCart.map(item => 
+        item.product.id === productId ? { ...item, posology: suggestedPosology, aiOptimized: true } : item
+      ));
+      setAiLoadingId(null);
+    }, 800);
+  };
+
+  // Submit Prescription
+  const handleRegisterPrescription = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (cart.length === 0) {
+      alert('Debe agregar al menos un medicamento a la prescripción.');
+      return;
+    }
+    
+    const missingPosology = cart.some(item => !item.posology);
+    if (missingPosology) {
+      alert('Por favor configure las instrucciones de posología para todos los medicamentos.');
+      return;
+    }
+
+    setSuccessMsg(`¡El récipe clínico con ${cart.length} medicamentos y propuestas comerciales se ha registrado y enviado correctamente al portal de ${linkedPatient?.name}!`);
+    setCart([]);
+    
+    setTimeout(() => {
+      setSuccessMsg('');
+    }, 4500);
+  };
+
+  // Filter pharmaceutical products
+  const filteredCatalog = FARMA_HUMANA_CATALOG.filter(prod => 
+    prod.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    prod.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    prod.sku.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <div className="flex h-screen bg-slate-950 text-slate-100 overflow-hidden font-sans">
       
@@ -189,7 +309,7 @@ export default function DoctorView({ doctorName, doctorEmail, onLogout }: Doctor
       {/* Doctor Sidebar */}
       <aside className="w-64 bg-slate-900 border-r border-slate-850 flex flex-col h-full shrink-0 text-slate-300">
         <div className="h-16 flex items-center gap-3 px-6 border-b border-slate-850 bg-slate-950/20">
-          <div className="h-9 w-9 rounded-lg bg-gradient-to-tr from-rose-500 to-red-650 flex items-center justify-center text-white shadow-lg shadow-rose-500/20">
+          <div className="h-9 w-9 rounded-lg bg-gradient-to-tr from-rose-500 to-red-655 flex items-center justify-center text-white shadow-lg shadow-rose-500/20">
             <Heart className="h-5 w-5" />
           </div>
           <div>
@@ -225,6 +345,18 @@ export default function DoctorView({ doctorName, doctorEmail, onLogout }: Doctor
           >
             <QrCode className={`h-5 w-5 ${activeTab === 'reception' ? 'text-rose-455' : ''}`} />
             <span>Recepción y Escáner (M.1)</span>
+          </button>
+
+          <button 
+            onClick={() => setActiveTab('prescription')}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
+              activeTab === 'prescription'
+                ? 'bg-gradient-to-r from-rose-500/10 to-red-500/10 text-white border-l-2 border-rose-500'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-850/50 border-l-2 border-transparent'
+            }`}
+          >
+            <FileText className={`h-5 w-5 ${activeTab === 'prescription' ? 'text-rose-455' : ''}`} />
+            <span>Prescribir con IA (M.2)</span>
           </button>
           
           <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-850/50 border-l-2 border-transparent">
@@ -358,7 +490,7 @@ export default function DoctorView({ doctorName, doctorEmail, onLogout }: Doctor
                     </div>
                   </div>
 
-                  {/* Patient warnings warnings */}
+                  {/* Patient warnings */}
                   <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 space-y-4 flex flex-col justify-between">
                     <div>
                       <h3 className="font-bold text-white text-base">Alertas Clínicas Críticas</h3>
@@ -370,9 +502,9 @@ export default function DoctorView({ doctorName, doctorEmail, onLogout }: Doctor
                         <div key={idx} className="p-3 bg-slate-950/40 border border-slate-850 rounded-xl space-y-1">
                           <div className="flex justify-between items-center text-xs">
                             <span className="font-semibold text-white">{pat.name}</span>
-                            <span className="text-slate-550 text-[10px] font-medium">Edad: {pat.age} años</span>
+                            <span className="text-slate-555 text-[10px] font-medium">Edad: {pat.age} años</span>
                           </div>
-                          <p className="text-[10px] text-rose-450 flex items-center gap-1 font-semibold">
+                          <p className="text-[10px] text-rose-455 flex items-center gap-1 font-semibold">
                             <ShieldAlert className="h-3 w-3 text-rose-400" />
                             <span>Condición: {pat.condition}</span>
                           </p>
@@ -414,10 +546,8 @@ export default function DoctorView({ doctorName, doctorEmail, onLogout }: Doctor
                       
                       {isScanning ? (
                         <>
-                          {/* Animated scan laser line */}
                           <div className="absolute left-0 w-full h-0.5 bg-rose-500 shadow-[0_0_8px_rgba(239,68,68,0.8)] laser-line"></div>
                           
-                          {/* Camera corners */}
                           <div className="absolute top-3 left-3 w-4 h-4 border-t-2 border-l-2 border-rose-500"></div>
                           <div className="absolute top-3 right-3 w-4 h-4 border-t-2 border-r-2 border-rose-500"></div>
                           <div className="absolute bottom-3 left-3 w-4 h-4 border-b-2 border-l-2 border-rose-500"></div>
@@ -450,14 +580,12 @@ export default function DoctorView({ doctorName, doctorEmail, onLogout }: Doctor
                       )}
                     </div>
 
-                    {/* Manual entry separator */}
                     <div className="w-full flex items-center justify-center gap-3 text-2xs font-bold text-slate-600 uppercase tracking-widest py-1">
                       <span className="h-px bg-slate-800 flex-1"></span>
                       <span>o</span>
                       <span className="h-px bg-slate-800 flex-1"></span>
                     </div>
 
-                    {/* Manual ID Input Form */}
                     <form onSubmit={handleManualLinkSubmit} className="w-full space-y-3 text-left">
                       <div className="space-y-1.5">
                         <label className="text-2xs font-bold text-slate-550 uppercase">Ingresar ID Paciente Manualmente</label>
@@ -477,77 +605,84 @@ export default function DoctorView({ doctorName, doctorEmail, onLogout }: Doctor
                           </button>
                         </div>
                       </div>
-                      <p className="text-[10px] text-slate-550 italic leading-snug">
+                      <p className="text-[10px] text-slate-555 italic leading-snug">
                         Tip de prueba: Digite <code className="text-rose-400 font-mono">8849</code> para vincular directamente a Sofía Peralta.
                       </p>
                     </form>
                   </div>
 
-                  {/* Right Column: Bidirectional panel (2/3 width) */}
+                  {/* Right Column: Bidirectional panel */}
                   <div className="lg:col-span-2 space-y-6">
-                    
                     {linkedPatient ? (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         
-                        {/* Bloque A: Demographic data and patient history (for the doctor) */}
-                        <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-6 backdrop-blur-md space-y-4 animate-in fade-in duration-300">
-                          <div>
-                            <span className="text-[9px] bg-rose-500/10 text-rose-400 px-2 py-0.5 rounded font-bold uppercase tracking-wider">Bloque A</span>
-                            <h3 className="font-bold text-white text-base mt-1.5">Expediente Clínico</h3>
-                            <p className="text-xs text-slate-400">Datos médicos visibles en su pantalla de control.</p>
-                          </div>
-
-                          {/* Demographic summary */}
-                          <div className="bg-slate-950/60 border border-slate-850 p-3.5 rounded-xl space-y-2.5 text-xs">
-                            <div className="flex justify-between items-center border-b border-slate-850 pb-1.5">
-                              <span className="font-semibold text-white text-sm">{linkedPatient.name}</span>
-                              <span className="text-[9px] bg-slate-800 text-slate-400 font-mono px-1.5 py-0.5 rounded">
-                                {linkedPatient.gender}
-                              </span>
-                            </div>
-                            
-                            <div className="grid grid-cols-2 gap-y-2 text-2xs text-slate-400">
-                              <div>
-                                <span className="text-slate-550 uppercase font-bold block">Edad</span>
-                                <span className="text-slate-200">{linkedPatient.age} años</span>
-                              </div>
-                              <div>
-                                <span className="text-slate-550 uppercase font-bold block">Grupo Sanguíneo</span>
-                                <span className="text-slate-200">{linkedPatient.bloodType}</span>
-                              </div>
-                              <div className="col-span-2">
-                                <span className="text-slate-550 uppercase font-bold block">Teléfono Móvil</span>
-                                <span className="text-slate-200">{linkedPatient.phone}</span>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Medical History */}
-                          <div className="space-y-2.5 text-xs">
-                            <div className="space-y-1">
-                              <span className="text-[10px] font-bold text-rose-450 uppercase block">Diagnóstico de Control</span>
-                              <p className="text-slate-300 font-semibold">{linkedPatient.condition}</p>
-                            </div>
-                            
-                            <div className="space-y-1">
-                              <span className="text-[10px] font-bold text-rose-450 uppercase block">Alergias Críticas</span>
-                              <p className="text-rose-400 font-bold flex items-center gap-1.5">
-                                <ShieldAlert className="h-3.5 w-3.5 text-rose-450" />
-                                <span>{linkedPatient.allergies}</span>
-                              </p>
+                        {/* Bloque A: Demographic data and patient history */}
+                        <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-6 backdrop-blur-md space-y-4 animate-in fade-in duration-300 flex flex-col justify-between">
+                          <div className="space-y-4">
+                            <div>
+                              <span className="text-[9px] bg-rose-500/10 text-rose-400 px-2 py-0.5 rounded font-bold uppercase tracking-wider">Bloque A</span>
+                              <h3 className="font-bold text-white text-base mt-1.5">Expediente Clínico</h3>
+                              <p className="text-xs text-slate-400">Datos médicos visibles en su pantalla de control.</p>
                             </div>
 
-                            <div className="space-y-1.5 pt-1.5 border-t border-slate-850">
-                              <span className="text-[10px] font-bold text-slate-500 uppercase block">Tratamientos Prescritos Activos</span>
-                              <div className="flex flex-wrap gap-1.5">
-                                {linkedPatient.medications.map((med, index) => (
-                                  <span key={index} className="px-2 py-0.5 bg-slate-800 text-slate-300 rounded text-2xs font-medium">
-                                    {med}
-                                  </span>
-                                ))}
+                            <div className="bg-slate-950/60 border border-slate-850 p-3.5 rounded-xl space-y-2.5 text-xs">
+                              <div className="flex justify-between items-center border-b border-slate-850 pb-1.5">
+                                <span className="font-semibold text-white text-sm">{linkedPatient.name}</span>
+                                <span className="text-[9px] bg-slate-800 text-slate-400 font-mono px-1.5 py-0.5 rounded">
+                                  {linkedPatient.gender}
+                                </span>
+                              </div>
+                              
+                              <div className="grid grid-cols-2 gap-y-2 text-2xs text-slate-400">
+                                <div>
+                                  <span className="text-slate-555 uppercase font-bold block">Edad</span>
+                                  <span className="text-slate-200">{linkedPatient.age} años</span>
+                                </div>
+                                <div>
+                                  <span className="text-slate-555 uppercase font-bold block">Grupo Sanguíneo</span>
+                                  <span className="text-slate-200">{linkedPatient.bloodType}</span>
+                                </div>
+                                <div className="col-span-2">
+                                  <span className="text-slate-555 uppercase font-bold block">Teléfono Móvil</span>
+                                  <span className="text-slate-200">{linkedPatient.phone}</span>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="space-y-2.5 text-xs">
+                              <div className="space-y-1">
+                                <span className="text-[10px] font-bold text-rose-455 uppercase block">Diagnóstico de Control</span>
+                                <p className="text-slate-300 font-semibold">{linkedPatient.condition}</p>
+                              </div>
+                              
+                              <div className="space-y-1">
+                                <span className="text-[10px] font-bold text-rose-455 uppercase block">Alergias Críticas</span>
+                                <p className="text-rose-400 font-bold flex items-center gap-1.5">
+                                  <ShieldAlert className="h-3.5 w-3.5 text-rose-455" />
+                                  <span>{linkedPatient.allergies}</span>
+                                </p>
+                              </div>
+
+                              <div className="space-y-1.5 pt-1.5 border-t border-slate-850">
+                                <span className="text-[10px] font-bold text-slate-500 uppercase block">Tratamientos Prescritos Activos</span>
+                                <div className="flex flex-wrap gap-1.5">
+                                  {linkedPatient.medications.map((med, index) => (
+                                    <span key={index} className="px-2 py-0.5 bg-slate-800 text-slate-300 rounded text-2xs font-medium">
+                                      {med}
+                                    </span>
+                                  ))}
+                                </div>
                               </div>
                             </div>
                           </div>
+
+                          <button
+                            onClick={() => setActiveTab('prescription')}
+                            className="w-full mt-4 py-2.5 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-bold transition-all shadow-md flex items-center justify-center gap-1 cursor-pointer"
+                          >
+                            <span>Iniciar Consulta / Prescribir</span>
+                            <ChevronRight className="h-4 w-4" />
+                          </button>
                         </div>
 
                         {/* Bloque B: Visual Mirror confirmation of patient feed */}
@@ -559,7 +694,6 @@ export default function DoctorView({ doctorName, doctorEmail, onLogout }: Doctor
                               <p className="text-xs text-slate-400">Confirmación del envío de información en espejo.</p>
                             </div>
 
-                            {/* Mirror status telemetry panel */}
                             <div className="bg-slate-950 border border-slate-850 p-4 rounded-xl space-y-4 text-xs">
                               <div className="flex items-center gap-2">
                                 <span className={`h-2.5 w-2.5 rounded-full ${mirrorProgress === 100 ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500 animate-ping'}`}></span>
@@ -583,7 +717,6 @@ export default function DoctorView({ doctorName, doctorEmail, onLogout }: Doctor
                                 </div>
                               </div>
 
-                              {/* Progress bar of mirroring transmission */}
                               <div className="space-y-1">
                                 <div className="h-1 w-full bg-slate-800 rounded-full overflow-hidden">
                                   <div 
@@ -596,7 +729,6 @@ export default function DoctorView({ doctorName, doctorEmail, onLogout }: Doctor
                             </div>
                           </div>
 
-                          {/* Mirror completion text alert */}
                           {mirrorProgress === 100 ? (
                             <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-450 text-2xs flex items-start gap-2 animate-in zoom-in-95 duration-200">
                               <ShieldCheck className="h-4 w-4 shrink-0 mt-0.5 text-emerald-450" />
@@ -605,7 +737,7 @@ export default function DoctorView({ doctorName, doctorEmail, onLogout }: Doctor
                               </p>
                             </div>
                           ) : (
-                            <div className="p-3 bg-slate-950/40 border border-slate-850 rounded-xl text-slate-500 text-2xs flex items-start gap-2">
+                            <div className="p-3 bg-slate-950/40 border border-slate-850 rounded-xl text-slate-550 text-2xs flex items-start gap-2">
                               <RefreshCw className="h-4 w-4 shrink-0 mt-0.5 animate-spin" />
                               <p className="leading-snug">
                                 Enviando paquete de telemetría de consulta al dispositivo del paciente...
@@ -616,7 +748,6 @@ export default function DoctorView({ doctorName, doctorEmail, onLogout }: Doctor
 
                       </div>
                     ) : (
-                      // Empty state when no patient is linked yet
                       <div className="h-full bg-slate-900/60 border border-slate-800 rounded-3xl p-8 flex flex-col items-center justify-center text-center space-y-3 min-h-[340px]">
                         <AlertCircle className="h-10 w-10 text-slate-650" />
                         <h4 className="font-bold text-white text-sm">Sin Paciente Vinculado</h4>
@@ -625,10 +756,279 @@ export default function DoctorView({ doctorName, doctorEmail, onLogout }: Doctor
                         </p>
                       </div>
                     )}
-
                   </div>
 
                 </div>
+              </div>
+            )}
+
+            {/* VIEW TAB 3: CLINICAL PRESCRIPTION & AI ASSISTANT (Pantalla M.2) */}
+            {activeTab === 'prescription' && (
+              <div className="space-y-6 animate-in fade-in duration-300">
+                
+                {/* Linked Patient Header Bar */}
+                <div className="bg-slate-900/65 border border-slate-800 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 backdrop-blur-md">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-full bg-rose-650 flex items-center justify-center text-white font-extrabold text-sm shadow-md">
+                      {linkedPatient ? linkedPatient.name.charAt(0) : '?'}
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-slate-450 uppercase font-bold tracking-wider">Paciente en Consulta</span>
+                        {linkedPatient && (
+                          <span className="text-[9px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 px-1.5 py-0.2 rounded font-mono font-bold">
+                            VINCULADO
+                          </span>
+                        )}
+                      </div>
+                      <h3 className="text-base font-extrabold text-white mt-0.5">
+                        {linkedPatient ? `${linkedPatient.name} (${linkedPatient.age} años)` : 'Ninguno seleccionado'}
+                      </h3>
+                    </div>
+                  </div>
+
+                  {!linkedPatient && (
+                    <button
+                      onClick={() => setActiveTab('reception')}
+                      className="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-bold transition-all cursor-pointer"
+                    >
+                      Vincular Paciente
+                    </button>
+                  )}
+                </div>
+
+                {successMsg && (
+                  <div className="p-4 bg-emerald-500/15 border border-emerald-500/30 rounded-2xl flex items-center gap-3 text-emerald-400 text-xs animate-in fade-in slide-in-from-top-2 duration-300 leading-relaxed">
+                    <CheckCircle2 className="h-5 w-5 shrink-0" />
+                    <span>{successMsg}</span>
+                  </div>
+                )}
+
+                {linkedPatient ? (
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    
+                    {/* Left Grid: Catalog & Search (5 cols) */}
+                    <div className="lg:col-span-5 bg-slate-900/60 border border-slate-800 rounded-3xl p-6 backdrop-blur-md space-y-4 flex flex-col max-h-[600px]">
+                      <div>
+                        <h3 className="font-bold text-white text-base">Buscador de Medicamentos</h3>
+                        <p className="text-xs text-slate-400">Catálogo indexado de la farmacia Farma-Humana.</p>
+                      </div>
+
+                      {/* Search Input */}
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                        <input
+                          type="text"
+                          placeholder="Buscar por nombre o categoría..."
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          className="w-full pl-9 pr-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-750 focus:outline-none focus:border-rose-500"
+                        />
+                      </div>
+
+                      {/* Catalog Items list */}
+                      <div className="flex-1 overflow-y-auto space-y-2 pr-1">
+                        {filteredCatalog.map((prod) => {
+                          const isAlreadySelected = cart.some(item => item.product.id === prod.id);
+                          return (
+                            <div 
+                              key={prod.id} 
+                              className={`p-3 border rounded-xl flex items-start justify-between gap-2.5 transition-all ${
+                                isAlreadySelected
+                                  ? 'bg-slate-950/60 border-slate-800 opacity-60'
+                                  : 'bg-slate-950/40 border-slate-850 hover:border-slate-800'
+                              }`}
+                            >
+                              <div className="space-y-1 text-left min-w-0">
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  <span className="font-bold text-xs text-white truncate">{prod.name}</span>
+                                  <span className="text-[8px] bg-slate-850 text-slate-400 px-1.5 py-0.2 rounded font-medium">
+                                    {prod.category}
+                                  </span>
+                                </div>
+                                <p className="text-[10px] text-slate-500 line-clamp-1">{prod.description}</p>
+                                <div className="flex items-center gap-2 text-[10px] text-slate-400 pt-0.5">
+                                  <span>Precio: ${prod.price.toFixed(2)}</span>
+                                  <span>•</span>
+                                  <span className={prod.stock < 20 ? 'text-amber-500 font-medium' : ''}>
+                                    Stock: {prod.stock} u.
+                                  </span>
+                                </div>
+                              </div>
+
+                              <button
+                                type="button"
+                                disabled={isAlreadySelected}
+                                onClick={() => addToCart(prod)}
+                                className={`p-1.5 rounded-lg border transition-colors cursor-pointer shrink-0 ${
+                                  isAlreadySelected
+                                    ? 'bg-slate-900 border-slate-850 text-slate-600'
+                                    : 'bg-rose-500/10 hover:bg-rose-500 border-rose-500/20 hover:border-rose-550 text-rose-450 hover:text-white'
+                                }`}
+                              >
+                                <Plus className="h-4.5 w-4.5" />
+                              </button>
+                            </div>
+                          );
+                        })}
+
+                        {filteredCatalog.length === 0 && (
+                          <div className="py-8 text-center text-xs text-slate-500">
+                            Ningún medicamento coincide con su búsqueda.
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Right Grid: Active Prescription Cart & IA Assistant (7 cols) */}
+                    <div className="lg:col-span-7 bg-slate-900/60 border border-slate-800 rounded-3xl p-6 backdrop-blur-md flex flex-col justify-between max-h-[600px] overflow-y-auto">
+                      <div className="space-y-4">
+                        <div className="flex justify-between items-center border-b border-slate-850 pb-3">
+                          <div>
+                            <h3 className="font-bold text-white text-base">Prescripción en Preparación</h3>
+                            <p className="text-xs text-slate-400">Configure la posología de cada medicamento.</p>
+                          </div>
+                          <span className="text-xs bg-rose-500/10 text-rose-455 px-2 py-0.5 rounded font-bold">
+                            {cart.length} medicamentos
+                          </span>
+                        </div>
+
+                        {cart.length > 0 ? (
+                          <form onSubmit={handleRegisterPrescription} className="space-y-5">
+                            <div className="space-y-4 divide-y divide-slate-850">
+                              {cart.map((item, index) => (
+                                <div key={item.product.id} className={`pt-4 first:pt-0 space-y-3`}>
+                                  
+                                  {/* Item Header */}
+                                  <div className="flex justify-between items-start gap-2">
+                                    <div>
+                                      <h4 className="font-bold text-sm text-white">{item.product.name}</h4>
+                                      <span className="text-[9px] text-slate-500 font-mono block">SKU: {item.product.sku}</span>
+                                    </div>
+                                    <button
+                                      type="button"
+                                      onClick={() => removeFromCart(item.product.id)}
+                                      className="p-1 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors cursor-pointer"
+                                      title="Quitar de la prescripción"
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </button>
+                                  </div>
+
+                                  {/* Posology input with IA assistant */}
+                                  <div className="space-y-1.5">
+                                    <div className="flex justify-between items-center">
+                                      <span className="text-[10px] font-bold text-slate-450 uppercase">Instrucciones de Posología</span>
+                                      
+                                      <button
+                                        type="button"
+                                        disabled={aiLoadingId === item.product.id}
+                                        onClick={() => handleAiPosologyAssist(item.product.id, item.product.name)}
+                                        className="text-[10px] font-extrabold bg-indigo-500/10 hover:bg-indigo-500 text-indigo-400 hover:text-white border border-indigo-550/20 px-2 py-0.5 rounded-lg flex items-center gap-1 transition-all cursor-pointer"
+                                      >
+                                        {aiLoadingId === item.product.id ? (
+                                          <RefreshCw className="h-3 w-3 animate-spin" />
+                                        ) : (
+                                          <Sparkles className="h-3 w-3" />
+                                        )}
+                                        <span>Asistente IA</span>
+                                      </button>
+                                    </div>
+
+                                    <textarea
+                                      rows={2}
+                                      value={item.posology}
+                                      onChange={(e) => updateCartPosology(item.product.id, e.target.value)}
+                                      placeholder="Ej: Tomar 1 comprimido al día por la mañana en ayunas..."
+                                      className={`w-full bg-slate-950 border rounded-xl p-2.5 text-xs text-white placeholder-slate-750 focus:outline-none transition-all ${
+                                        item.aiOptimized 
+                                          ? 'border-indigo-500/50 focus:border-indigo-550 focus:ring-1 focus:ring-indigo-500/20' 
+                                          : 'border-slate-800 focus:border-rose-500'
+                                      }`}
+                                    />
+                                    {item.aiOptimized && (
+                                      <p className="text-[9px] text-indigo-400 font-semibold flex items-center gap-1">
+                                        <Sparkles className="h-3 w-3" />
+                                        <span>Posología estructurada y validada clínicamente por la IA de la clínica.</span>
+                                      </p>
+                                    )}
+                                  </div>
+
+                                  {/* Incentives / Discounts Selector */}
+                                  <div className="space-y-1.5">
+                                    <span className="text-[10px] font-bold text-slate-450 uppercase flex items-center gap-1">
+                                      <Percent className="h-3 w-3 text-rose-455" />
+                                      <span>Asignación de Incentivo / Descuento Exclusivo</span>
+                                    </span>
+                                    
+                                    <div className="grid grid-cols-5 gap-1.5">
+                                      {[0, 10, 15, 20, 30].map((disc) => (
+                                        <button
+                                          key={disc}
+                                          type="button"
+                                          onClick={() => updateCartDiscount(item.product.id, disc)}
+                                          className={`py-1 rounded-lg text-2xs font-bold border transition-colors cursor-pointer ${
+                                            item.discount === disc
+                                              ? 'bg-rose-500 border-rose-550 text-white'
+                                              : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:text-white'
+                                          }`}
+                                        >
+                                          {disc}%
+                                        </button>
+                                      ))}
+                                    </div>
+                                  </div>
+
+                                </div>
+                              ))}
+                            </div>
+
+                            {/* Cart totals preview */}
+                            <div className="border-t border-slate-850 pt-4 space-y-2">
+                              <div className="flex justify-between text-2xs text-slate-400">
+                                <span>Estimación Subtotal Farmacia</span>
+                                <span className="font-mono text-slate-200">
+                                  ${cart.reduce((sum, item) => sum + item.product.price, 0).toFixed(2)}
+                                </span>
+                              </div>
+                              <div className="flex justify-between text-2xs text-rose-400 font-semibold">
+                                <span>Descuentos Médicos Promedio</span>
+                                <span>Ahorro para el Paciente</span>
+                              </div>
+                            </div>
+
+                            {/* Main action submit */}
+                            <button
+                              type="submit"
+                              className="w-full mt-2 py-3 bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-600 hover:to-red-700 text-white rounded-xl text-xs font-black shadow-lg shadow-rose-550/10 hover:shadow-rose-550/20 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                            >
+                              <Send className="h-4 w-4" />
+                              <span>Registrar e Iniciar Envío de Récipe</span>
+                            </button>
+
+                          </form>
+                        ) : (
+                          <div className="py-16 text-center space-y-2">
+                            <PlusCircle className="h-10 w-10 text-slate-750 mx-auto" />
+                            <h4 className="font-bold text-white text-xs">Prescripción Vacía</h4>
+                            <p className="text-[10px] text-slate-450 max-w-xs mx-auto">
+                              Seleccione medicamentos en el catálogo de Farma-Humana de la izquierda para agregarlos a la prescripción del paciente.
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                  </div>
+                ) : (
+                  <div className="h-64 bg-slate-900/60 border border-slate-800 rounded-3xl p-8 flex flex-col items-center justify-center text-center space-y-3">
+                    <AlertCircle className="h-10 w-10 text-slate-650" />
+                    <h4 className="font-bold text-white text-sm">Sin Consulta Activa</h4>
+                    <p className="text-xs text-slate-450 max-w-sm leading-relaxed">
+                      Debe vincular a un paciente en el módulo de Recepción para acceder al entorno de prescripción clínica y asistencia farmacológica con IA.
+                    </p>
+                  </div>
+                )}
 
               </div>
             )}
