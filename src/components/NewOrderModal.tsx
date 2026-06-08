@@ -4,6 +4,7 @@ import React, { useState, useMemo } from 'react';
 import { X, Search, Plus, Minus, User, PlusCircle, CreditCard, MapPin, Trash2, ShoppingBag } from 'lucide-react';
 import { Product, Customer, Order, OrderItem } from '../types';
 import { formatCustomerAddress } from '../lib/customerLocation';
+import VenezuelanStateSelect from './VenezuelanStateSelect';
 import { formatCurrency } from '../lib/currency';
 import { isMedicationProduct } from '../lib/products';
 import { Button, Modal, ModalBody } from './ui';
@@ -415,13 +416,12 @@ export default function NewOrderModal({
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       <div>
                         <label className="zenith-field-label">Estado *</label>
-                        <input
-                          type="text"
+                        <VenezuelanStateSelect
                           required={isCreatingNewCustomer}
-                          placeholder="Ej: Distrito Capital"
+                          allowEmpty
                           value={newCustomerForm.state}
-                          onChange={(e) => setNewCustomerForm({ ...newCustomerForm, state: e.target.value })}
-                          className="w-full bg-surface-950 border border-surface-850 rounded-lg p-2 text-xs text-white placeholder-surface-600 focus:outline-none focus:border-primary-500 mt-1"
+                          onChange={(state) => setNewCustomerForm({ ...newCustomerForm, state })}
+                          className="rounded-lg p-2 mt-1"
                         />
                       </div>
                       <div>

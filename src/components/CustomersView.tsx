@@ -5,6 +5,7 @@ import { Search, Plus, Users, Mail, Phone, MapPin, DollarSign, ShoppingBag, X } 
 import { Customer } from '../types';
 import { formatCurrency } from '../lib/currency';
 import { formatCustomerAddress, formatCustomerLocation } from '../lib/customerLocation';
+import VenezuelanStateSelect from './VenezuelanStateSelect';
 import { PageHeader, Button, Input, Modal, ModalBody, ModalFooter, ListCard } from './ui';
 
 interface CustomersViewProps {
@@ -267,13 +268,12 @@ export default function CustomersView({ customers, onAddCustomer }: CustomersVie
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="zenith-field-label">Estado *</label>
-                    <input
-                      type="text"
+                    <VenezuelanStateSelect
                       required
-                      placeholder="Ej: Distrito Capital"
+                      allowEmpty
                       value={newCustomerForm.state}
-                      onChange={(e) => setNewCustomerForm({ ...newCustomerForm, state: e.target.value })}
-                      className="w-full bg-surface-950 border border-surface-850 rounded-lg p-2.5 text-xs text-white placeholder-surface-600 focus:outline-none focus:border-primary-500 mt-1"
+                      onChange={(state) => setNewCustomerForm({ ...newCustomerForm, state })}
+                      className="rounded-lg p-2.5 mt-1"
                     />
                   </div>
                   <div>

@@ -36,6 +36,7 @@ import {
   SidebarCredentialButton,
   CredentialQrModal,
 } from './CredentialQr';
+import VenezuelanStateSelect from './VenezuelanStateSelect';
 import { formatCurrency } from '../lib/currency';
 import { PageHeader, Button, ListCard, StatCard } from './ui';
 
@@ -1500,12 +1501,9 @@ export default function PatientView({ patientName, patientEmail, onLogout }: Pat
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <div className="space-y-1.5">
                             <label className="zenith-field-label">Estado</label>
-                            <input
-                              type="text"
+                            <VenezuelanStateSelect
                               value={deliveryState}
-                              onChange={(e) => setDeliveryState(e.target.value)}
-                              placeholder="Ej: Distrito Capital"
-                              className="w-full bg-surface-950 border border-surface-850 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-primary-500 placeholder-surface-800"
+                              onChange={setDeliveryState}
                             />
                           </div>
                           <div className="space-y-1.5">
