@@ -1,20 +1,17 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { 
-  Upload, 
-  FileText, 
-  Trash2, 
-  CheckCircle, 
-  ShieldCheck, 
-  Palette, 
-  Info, 
-  Eye, 
-  Sparkles,
-  ArrowRight,
-  BookOpen
+import {
+  Upload,
+  CheckCircle,
+  Palette,
+  Info,
+  ImageIcon,
+  FileText,
+  Save,
 } from 'lucide-react';
 import { PageHeader, Button } from './ui';
+import { cn } from '../lib/utils';
 
 interface CmsSettings {
   logoUrl: string;
@@ -24,6 +21,13 @@ interface CmsSettings {
   privacyPolicy: string;
   deliveryPolicy: string;
 }
+
+type CmsSection = 'appearance' | 'legal';
+
+const themeOptions = [
+  { id: 'primary' as const, name: 'Azul turquesa', swatch: 'bg-primary-500' },
+  { id: 'secondary' as const, name: 'Verde', swatch: 'bg-secondary-500' },
+];
 
 const themePreviewClasses = {
   primary: {
@@ -48,6 +52,11 @@ const DEFAULT_TERMS = `Términos y Condiciones del Servicio:
 const DEFAULT_PRIVACY = `Políticas de Privacidad y Consentimiento de Datos:
 De conformidad con las leyes de protección de datos de salud y regulaciones de secreto médico, toda la información de diagnóstico y recetas emitidas se almacena de forma encriptada de punto a punto y no es compartida con entidades de mercadotecnia de terceros.`;
 
+const sectionTabs: { id: CmsSection; label: string; icon: React.ElementType }[] = [
+  { id: 'appearance', label: 'Apariencia', icon: Palette },
+  { id: 'legal', label: 'Textos legales', icon: FileText },
+];
+
 export default function CmsView() {
   const [settings, setSettings] = useState<CmsSettings>({
     logoUrl: '/images/default-logo.png',
@@ -55,19 +64,15 @@ export default function CmsView() {
     themeColor: 'primary',
     termsAndConditions: DEFAULT_TERMS,
     privacyPolicy: DEFAULT_PRIVACY,
-    deliveryPolicy: 'Las entregas a domicilio estándar se procesan en un lapso de 24 horas hábiles a partir de la confirmación del pago en la plataforma.'
+    deliveryPolicy:
+      'Las entregas a domicilio estándar se procesan en un lapso de 24 horas hábiles a partir de la confirmación del pago en la plataforma.',
   });
 
-  const [uploadedFiles, setUploadedFiles] = useState<{ name: string; size: string; type: string }[]>([
-    { name: 'logo_zenith_vector.png', size: '142 KB', type: 'image/png' },
-    { name: 'banner_promocional_junio.jpg', size: '1.2 MB', type: 'image/jpeg' }
-  ]);
-
-  const [dragActive, setDragActive] = useState(false);
+  const [activeSection, setActiveSection] = useState<CmsSection>('appearance');
   const [saveSuccess, setSaveSuccess] = useState(false);
-  const [previewMode, setPreviewMode] = useState(false);
+  const [logoFileName, setLogoFileName] = useState('logo_zenith_vector.png');
+  const [bannerFileName, setBannerFileName] = useState('banner_promocional.jpg');
 
-  // Load configuration from local storage
   useEffect(() => {
     const localCms = localStorage.getItem('zenith_cms_settings');
     if (localCms) {
@@ -77,309 +82,262 @@ export default function CmsView() {
     }
   }, []);
 
-  // Drag and drop events
-  const handleDrag = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActive(true);
-    } else if (e.type === "dragleave") {
-      setDragActive(false);
-    }
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
-
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      const file = e.dataTransfer.files[0];
-      const newFile = {
-        name: file.name,
-        size: (file.size / 1024 / 1024).toFixed(1) + ' MB',
-        type: file.type
-      };
-      setUploadedFiles(prev => [...prev, newFile]);
-    }
-  };
-
-  const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      const newFile = {
-        name: file.name,
-        size: (file.size / 1024 / 1024).toFixed(1) + ' MB',
-        type: file.type
-      };
-      setUploadedFiles(prev => [...prev, newFile]);
-    }
-  };
-
-  const removeFile = (index: number) => {
-    setUploadedFiles(prev => prev.filter((_, i) => i !== index));
+  const handleImageUpload = (
+    file: File,
+    field: 'logoUrl' | 'bannerUrl',
+    setFileName: (name: string) => void
+  ) => {
+    const objectUrl = URL.createObjectURL(file);
+    setSettings((prev) => ({ ...prev, [field]: objectUrl }));
+    setFileName(file.name);
   };
 
   const handlePublish = () => {
     localStorage.setItem('zenith_cms_settings', JSON.stringify(settings));
     localStorage.setItem('zenith_terms_conditions', settings.termsAndConditions);
-    
-    // Trigger custom event so other views can immediately listen to visual changes
     window.dispatchEvent(new Event('zenith_cms_update'));
-
     setSaveSuccess(true);
-    setTimeout(() => setSaveSuccess(false), 4000);
+    setTimeout(() => setSaveSuccess(false), 3000);
   };
 
-  const previewTheme = themePreviewClasses[settings.themeColor === 'secondary' ? 'secondary' : 'primary'];
+  const previewTheme = themePreviewClasses[settings.themeColor];
 
   return (
     <div className="space-y-6">
-      
       <PageHeader
-        title="Personalización y Configuración CMS"
-        description="Administre la identidad de marca, plantillas visuales y políticas legales."
+        title="Portal del paciente"
+        description="Define la apariencia y los textos que verán médicos y pacientes."
         actions={
-          <>
-            <Button variant="outline" size="sm" onClick={() => setPreviewMode(!previewMode)}>
-              <Eye className="h-4 w-4" />
-              {previewMode ? 'Volver al Editor' : 'Vista Previa en Vivo'}
-            </Button>
-            <Button size="sm" onClick={handlePublish}>
-              <Sparkles className="h-4 w-4" />
-              Publicar Cambios
-            </Button>
-          </>
+          <Button size="sm" onClick={handlePublish}>
+            <Save className="h-4 w-4" />
+            Guardar cambios
+          </Button>
         }
       />
 
       {saveSuccess && (
-        <div className="p-4 bg-secondary-500/10 border border-secondary-500/25 rounded-2xl flex items-center gap-2.5 text-secondary-450 text-xs animate-in fade-in slide-in-from-top-2 duration-300">
-          <CheckCircle className="h-4.5 w-4.5 shrink-0" />
-          <div>
-            <span className="font-bold">¡Publicación Exitosa!</span> Las políticas legales y la plantilla visual del portal se han sincronizado en caliente para todos los usuarios.
-          </div>
+        <div className="p-3.5 bg-secondary-500/10 border border-secondary-500/25 rounded-xl flex items-center gap-2 text-secondary-450 text-xs">
+          <CheckCircle className="h-4 w-4 shrink-0" />
+          <span>
+            <strong className="font-bold">Cambios guardados.</strong> Se aplicarán en el portal del
+            paciente.
+          </span>
         </div>
       )}
 
-      {previewMode ? (
-        /* Live Preview Mode of Visual Identity */
-        <div className="bg-surface-900/40 border border-surface-800 rounded-3xl p-8 backdrop-blur-md space-y-6 max-w-3xl mx-auto">
-          <div className="text-center space-y-2">
-            <span className="text-[10px] uppercase font-bold tracking-widest text-primary-400">Previsualizador de Identidad Corporativa</span>
-            <h3 className="zenith-section-title">Así visualizarán los pacientes el portal</h3>
+      <div className="flex flex-wrap gap-2 border-b border-surface-800 pb-1">
+        {sectionTabs.map(({ id, label, icon: Icon }) => (
+          <button
+            key={id}
+            type="button"
+            onClick={() => setActiveSection(id)}
+            className={cn(
+              'inline-flex items-center gap-2 px-4 py-2.5 text-xs font-semibold rounded-t-lg border-b-2 transition-colors cursor-pointer',
+              activeSection === id
+                ? 'text-foreground border-primary-500'
+                : 'text-surface-500 border-transparent hover:text-foreground'
+            )}
+          >
+            <Icon className="h-4 w-4 shrink-0" />
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {activeSection === 'appearance' ? (
+        <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
+          <div className="xl:col-span-3 space-y-5">
+            <section className="zenith-panel space-y-4">
+              <div>
+                <h3 className="zenith-section-title">Color del portal</h3>
+                <p className="text-xs text-surface-500 mt-0.5">
+                  Elige el color principal de botones y destacados.
+                </p>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {themeOptions.map((theme) => (
+                  <button
+                    key={theme.id}
+                    type="button"
+                    onClick={() => setSettings((prev) => ({ ...prev, themeColor: theme.id }))}
+                    className={cn(
+                      'flex items-center gap-3 p-3.5 rounded-xl border text-sm font-semibold transition-all cursor-pointer text-left',
+                      settings.themeColor === theme.id
+                        ? 'bg-surface-850 border-primary-500 text-foreground ring-1 ring-primary-500/30'
+                        : 'bg-surface-950 border-surface-800 text-surface-500 hover:border-surface-700 hover:text-foreground'
+                    )}
+                  >
+                    <span className={cn('h-8 w-8 rounded-lg shrink-0', theme.swatch)} />
+                    <span>{theme.name}</span>
+                  </button>
+                ))}
+              </div>
+            </section>
+
+            <section className="zenith-panel space-y-4">
+              <div>
+                <h3 className="zenith-section-title">Logotipo</h3>
+                <p className="text-xs text-surface-500 mt-0.5">
+                  Imagen que aparece en el encabezado del portal.
+                </p>
+              </div>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                <div className="h-16 w-16 rounded-xl bg-surface-950 border border-surface-800 flex items-center justify-center shrink-0 overflow-hidden">
+                  <ImageIcon className="h-7 w-7 text-surface-500" />
+                </div>
+                <div className="flex-1 space-y-2 min-w-0">
+                  <p className="text-xs text-surface-400 truncate">{logoFileName}</p>
+                  <label className="inline-flex items-center gap-2 px-3.5 py-2 bg-surface-950 border border-surface-800 rounded-xl text-xs font-semibold text-foreground hover:bg-surface-850 transition-colors cursor-pointer">
+                    <Upload className="h-4 w-4" />
+                    Subir logotipo
+                    <input
+                      type="file"
+                      accept="image/png,image/jpeg,image/svg+xml"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleImageUpload(file, 'logoUrl', setLogoFileName);
+                      }}
+                    />
+                  </label>
+                  <p className="text-[10px] text-surface-500">PNG, JPG o SVG. Máximo 5 MB.</p>
+                </div>
+              </div>
+            </section>
+
+            <section className="zenith-panel space-y-4">
+              <div>
+                <h3 className="zenith-section-title">Banner principal</h3>
+                <p className="text-xs text-surface-500 mt-0.5">
+                  Imagen promocional en la pantalla de inicio del paciente.
+                </p>
+              </div>
+              <div className="space-y-2">
+                <p className="text-xs text-surface-400 truncate">{bannerFileName}</p>
+                <label className="inline-flex items-center gap-2 px-3.5 py-2 bg-surface-950 border border-surface-800 rounded-xl text-xs font-semibold text-foreground hover:bg-surface-850 transition-colors cursor-pointer">
+                  <Upload className="h-4 w-4" />
+                  Subir banner
+                  <input
+                    type="file"
+                    accept="image/png,image/jpeg"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleImageUpload(file, 'bannerUrl', setBannerFileName);
+                    }}
+                  />
+                </label>
+                <p className="text-[10px] text-surface-500">PNG o JPG. Máximo 5 MB.</p>
+              </div>
+            </section>
           </div>
 
-          {/* Simulated Banner */}
-          <div className="relative h-44 rounded-2xl bg-primary-900/60 border border-primary-500/10 overflow-hidden flex items-center justify-between px-8">
-            <div className="space-y-2 relative z-10 max-w-sm">
-              <span className={`px-2.5 py-0.5 rounded-full text-2xs font-extrabold text-white ${previewTheme.badge}`}>
-                Descuento de Consulta
-              </span>
-              <h4 className="zenith-section-title leading-tight">Su médico le ha otorgado beneficios exclusivos</h4>
-              <p className="text-2xs text-surface-400">Canjee su récipe digital en cualquier sucursal afiliada de la red.</p>
+          <aside className="xl:col-span-2">
+            <div className="zenith-panel space-y-4 sticky top-6">
+              <div>
+                <h3 className="zenith-section-title">Vista previa</h3>
+                <p className="text-xs text-surface-500 mt-0.5">Así se verá el banner del paciente.</p>
+              </div>
+              <div className="relative rounded-xl bg-primary-900/60 border border-primary-500/10 overflow-hidden p-5 min-h-[140px] flex flex-col justify-between">
+                <div className="space-y-2 relative z-10">
+                  <span
+                    className={cn(
+                      'inline-block px-2 py-0.5 rounded-full text-[10px] font-bold text-white',
+                      previewTheme.badge
+                    )}
+                  >
+                    Beneficio activo
+                  </span>
+                  <p className="text-sm font-bold text-foreground leading-snug">
+                    Su médico le ha otorgado descuentos exclusivos
+                  </p>
+                  <p className="text-[10px] text-surface-500">
+                    Canjee su receta en cualquier sucursal de la red.
+                  </p>
+                </div>
+                <div
+                  className={cn(
+                    'absolute right-4 bottom-4 h-14 w-14 rounded-xl border flex items-center justify-center',
+                    previewTheme.iconBox
+                  )}
+                >
+                  <Palette className={cn('h-7 w-7', previewTheme.icon)} />
+                </div>
+                <div
+                  className={cn(
+                    'absolute -right-8 -bottom-8 h-28 w-28 rounded-full blur-xl',
+                    previewTheme.glow
+                  )}
+                />
+              </div>
             </div>
-            <div className={`h-20 w-20 rounded-2xl ${previewTheme.iconBox} flex items-center justify-center`}>
-              <Palette className={`h-10 w-10 ${previewTheme.icon}`} />
-            </div>
-            {/* Ambient glows */}
-            <div className={`absolute -right-10 -bottom-10 h-36 w-36 rounded-full ${previewTheme.glow} blur-xl`}></div>
-          </div>
-
-          {/* Legal document preview card */}
-          <div className="bg-surface-950/60 border border-surface-850 rounded-2xl p-5 space-y-4">
-            <div className="flex items-center gap-2 border-b border-surface-850 pb-2.5">
-              <BookOpen className="h-4.5 w-4.5 text-surface-450" />
-              <h4 className="text-xs font-bold text-surface-200">Términos y Condiciones Sincronizados</h4>
-            </div>
-            <p className="text-2xs text-surface-400 whitespace-pre-line leading-relaxed font-mono">
-              {settings.termsAndConditions}
-            </p>
-          </div>
+          </aside>
         </div>
       ) : (
-        /* Standard Edit Forms Grid */
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-          {/* Left Column: Drag & Drop Zone */}
-          <div className="space-y-6">
-            
-            {/* File drop panel */}
-            <div className="bg-surface-900/60 border border-surface-800 rounded-3xl p-6 backdrop-blur-md space-y-4">
-              <div>
-                <h3 className="zenith-section-title">Carga de Multimedia y Banners</h3>
-                <p className="text-xs text-surface-400">Cargue banners de campaña, logotipos e imágenes del sistema.</p>
-              </div>
-
-              {/* Drag/Drop area */}
-              <div 
-                onDragEnter={handleDrag}
-                onDragOver={handleDrag}
-                onDragLeave={handleDrag}
-                onDrop={handleDrop}
-                className={`border-2 border-dashed rounded-2xl p-8 text-center transition-all relative ${
-                  dragActive 
-                    ? 'border-primary-500 bg-primary-500/5' 
-                    : 'border-surface-850 bg-surface-950/20 hover:border-surface-700'
-                }`}
-              >
-                <input 
-                  type="file" 
-                  id="cms-file-upload" 
-                  multiple 
-                  onChange={handleFileInput}
-                  className="hidden" 
-                />
-                
-                <label 
-                  htmlFor="cms-file-upload" 
-                  className="flex flex-col items-center justify-center gap-3 cursor-pointer"
-                >
-                  <div className="h-10 w-10 rounded-xl bg-surface-900 flex items-center justify-center border border-surface-800 text-surface-400">
-                    <Upload className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-surface-200">Arrastre archivos multimedia o examine su equipo</p>
-                    <p className="text-[10px] text-surface-500 mt-1">Soporta PNG, JPEG o SVG hasta 5MB por archivo.</p>
-                  </div>
-                </label>
-              </div>
-
-              {/* Uploaded Files Ledger */}
-              <div className="space-y-2">
-                <p className="text-2xs font-bold text-surface-500 uppercase tracking-wider">Archivos de la Interfaz Activos ({uploadedFiles.length})</p>
-                
-                <div className="divide-y divide-surface-850">
-                  {uploadedFiles.map((file, idx) => (
-                    <div key={idx} className="py-2.5 first:pt-0 last:pb-0 flex items-center justify-between gap-3">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <div className="h-8 w-8 rounded-lg bg-surface-950 border border-surface-850 flex items-center justify-center shrink-0">
-                          <FileText className="h-4.5 w-4.5 text-primary-400" />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-xs font-semibold text-surface-200 truncate">{file.name}</p>
-                          <p className="text-[9px] font-mono text-surface-500">{file.size} • {file.type}</p>
-                        </div>
-                      </div>
-                      <button 
-                        onClick={() => removeFile(idx)}
-                        className="text-surface-500 hover:text-secondary-400 p-1 rounded transition-colors"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
+        <div className="max-w-3xl space-y-5">
+          <section className="zenith-panel space-y-5">
+            <div>
+              <h3 className="zenith-section-title">Textos legales</h3>
+              <p className="text-xs text-surface-500 mt-0.5">
+                El paciente debe aceptarlos antes de confirmar un pedido.
+              </p>
             </div>
 
-            {/* Corporate visual theme configuration */}
-            <div className="bg-surface-900/60 border border-surface-800 rounded-3xl p-6 backdrop-blur-md space-y-4">
-              <div className="flex items-center gap-2 border-b border-surface-850 pb-3">
-                <Palette className="h-4.5 w-4.5 text-secondary-450" />
-                <h3 className="zenith-section-title">Identidad Visual & Estilos</h3>
-              </div>
-
-              <div className="space-y-3.5">
-                <div className="space-y-1.5">
-                  <label className="zenith-field-label">Gama de Color Temático</label>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {[
-                      { id: 'primary' as const, name: 'Turquesa', color: 'bg-primary-600' },
-                      { id: 'secondary' as const, name: 'Verde Bosque', color: 'bg-secondary-600' },
-                    ].map(theme => (
-                      <button
-                        key={theme.id}
-                        onClick={() => setSettings(prev => ({ ...prev, themeColor: theme.id }))}
-                        className={`flex items-center gap-2 p-2 rounded-xl border text-[11px] font-semibold transition-all cursor-pointer ${
-                          settings.themeColor === theme.id 
-                            ? 'bg-surface-950 border-primary-500 text-white font-extrabold' 
-                            : 'bg-surface-950/20 border-surface-850 text-surface-450 hover:text-surface-200'
-                        }`}
-                      >
-                        <span className={`h-3.5 w-3.5 rounded-full ${theme.color} shrink-0`}></span>
-                        <span>{theme.name}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <label className="zenith-field-label">Logotipo Oficial (Path)</label>
-                    <input 
-                      type="text" 
-                      value={settings.logoUrl}
-                      onChange={e => setSettings(prev => ({ ...prev, logoUrl: e.target.value }))}
-                      className="w-full bg-surface-950 border border-surface-850 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-secondary-500 font-mono"
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="zenith-field-label">Ruta del Banner Principal</label>
-                    <input 
-                      type="text" 
-                      value={settings.bannerUrl}
-                      onChange={e => setSettings(prev => ({ ...prev, bannerUrl: e.target.value }))}
-                      className="w-full bg-surface-950 border border-surface-850 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-secondary-500 font-mono"
-                    />
-                  </div>
-                </div>
-              </div>
+            <div className="space-y-1.5">
+              <label className="zenith-field-label" htmlFor="cms-terms">
+                Términos y condiciones
+              </label>
+              <textarea
+                id="cms-terms"
+                rows={5}
+                value={settings.termsAndConditions}
+                onChange={(e) =>
+                  setSettings((prev) => ({ ...prev, termsAndConditions: e.target.value }))
+                }
+                className="zenith-input px-3.5 py-2.5 leading-relaxed resize-y min-h-[120px]"
+              />
             </div>
 
-          </div>
-
-          {/* Right Column: Legal Texts & Policies */}
-          <div className="bg-surface-900/60 border border-surface-800 rounded-3xl p-6 backdrop-blur-md space-y-5">
-            <div className="flex items-center gap-2 border-b border-surface-850 pb-3">
-              <ShieldCheck className="h-5 w-5 text-primary-400" />
-              <h3 className="zenith-section-title">Políticas Legales y Consentimientos</h3>
+            <div className="space-y-1.5">
+              <label className="zenith-field-label" htmlFor="cms-privacy">
+                Política de privacidad
+              </label>
+              <textarea
+                id="cms-privacy"
+                rows={4}
+                value={settings.privacyPolicy}
+                onChange={(e) =>
+                  setSettings((prev) => ({ ...prev, privacyPolicy: e.target.value }))
+                }
+                className="zenith-input px-3.5 py-2.5 leading-relaxed resize-y min-h-[100px]"
+              />
             </div>
 
-            <div className="space-y-4">
-              <div className="space-y-1.5">
-                <div className="flex justify-between items-center">
-                  <label className="zenith-field-label">Términos y Condiciones del Servicio</label>
-                  <span className="text-[9px] text-surface-500">Requerido en el carrito del paciente</span>
-                </div>
-                <textarea
-                  rows={6}
-                  value={settings.termsAndConditions}
-                  onChange={e => setSettings(prev => ({ ...prev, termsAndConditions: e.target.value }))}
-                  className="w-full bg-surface-950 border border-surface-850 rounded-xl px-3.5 py-2.5 text-xs text-surface-300 focus:outline-none focus:border-secondary-500 font-mono leading-relaxed"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="zenith-field-label">Políticas de Privacidad de Datos</label>
-                <textarea
-                  rows={4}
-                  value={settings.privacyPolicy}
-                  onChange={e => setSettings(prev => ({ ...prev, privacyPolicy: e.target.value }))}
-                  className="w-full bg-surface-950 border border-surface-850 rounded-xl px-3.5 py-2.5 text-xs text-surface-300 focus:outline-none focus:border-secondary-500 font-mono leading-relaxed"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="zenith-field-label">Políticas de Despacho / Delivery</label>
-                <textarea
-                  rows={3}
-                  value={settings.deliveryPolicy}
-                  onChange={e => setSettings(prev => ({ ...prev, deliveryPolicy: e.target.value }))}
-                  className="w-full bg-surface-950 border border-surface-850 rounded-xl px-3.5 py-2.5 text-xs text-surface-300 focus:outline-none focus:border-secondary-500 font-mono leading-relaxed"
-                />
-              </div>
+            <div className="space-y-1.5">
+              <label className="zenith-field-label" htmlFor="cms-delivery">
+                Política de entregas
+              </label>
+              <textarea
+                id="cms-delivery"
+                rows={3}
+                value={settings.deliveryPolicy}
+                onChange={(e) =>
+                  setSettings((prev) => ({ ...prev, deliveryPolicy: e.target.value }))
+                }
+                className="zenith-input px-3.5 py-2.5 leading-relaxed resize-y min-h-[80px]"
+              />
             </div>
 
-            <div className="p-3.5 bg-primary-500/5 border border-primary-500/15 rounded-xl flex items-start gap-2.5 text-[10px] text-surface-400">
-              <Info className="h-4 w-4 text-primary-400 shrink-0 mt-0.5" />
-              <span>Cualquier cambio en este bloque legal forzará la re-aceptación de los términos y condiciones en la interfaz del paciente antes de poder confirmar un pedido.</span>
+            <div className="p-3 bg-surface-950 border border-surface-800 rounded-xl flex items-start gap-2 text-[11px] text-surface-500">
+              <Info className="h-4 w-4 shrink-0 mt-0.5 text-surface-400" />
+              <span>
+                Si modificas estos textos, el paciente tendrá que volver a aceptar los términos en su
+                próximo pedido.
+              </span>
             </div>
-          </div>
-
+          </section>
         </div>
       )}
-
     </div>
   );
 }
