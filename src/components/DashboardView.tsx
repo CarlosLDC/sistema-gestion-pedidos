@@ -306,7 +306,7 @@ export default function DashboardView({ orders, products, onNavigate, onSelectOr
         />
         <StatCard
           icon={ShoppingBag}
-          label="Transacciones del Sistema"
+          label="Transacciones de Venta"
           value={orders.length}
           hint={
             <>
@@ -318,7 +318,7 @@ export default function DashboardView({ orders, products, onNavigate, onSelectOr
         />
         <StatCard
           icon={Award}
-          label="Efectividad Clínicas"
+          label="Efectividad de Tratamientos"
           value="94.6%"
           accent="secondary"
           hint={
