@@ -424,6 +424,14 @@ export default function PatientView({ patientName, patientEmail, onLogout }: Pat
     else setLastOrderStatus('Pendiente por retirar');
   };
 
+  const orderDeliverySteps = [
+    { id: 'Pendiente por retirar', label: 'Pendiente' },
+    { id: 'Listo para retirar', label: 'Listo para Retirar' },
+    { id: 'Retirado', label: 'Retirado' },
+  ] as const;
+
+  const activeOrderStepIndex = orderDeliverySteps.findIndex((step) => step.id === lastOrderStatus);
+
   const handleConfirmOrder = () => {
     if (!termsAccepted) {
       alert('Debe aceptar los Términos y Condiciones del servicio.');
@@ -563,92 +571,116 @@ export default function PatientView({ patientName, patientEmail, onLogout }: Pat
                 />
 
                 {/* Progress Stepper for last order */}
-                <div className="bg-surface-900/60 border border-surface-800 rounded-2xl p-5 backdrop-blur-md flex flex-col md:flex-row md:items-center justify-between gap-5 relative overflow-hidden group">
-                  <div className="space-y-1.5 z-10">
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] bg-surface-800 text-surface-300 border border-surface-700 px-2 py-0.5 rounded font-semibold uppercase tracking-wider">Última Orden de Farmacia</span>
-                      <span className="text-xs font-mono font-semibold text-surface-500">ID: #ORD-9923</span>
+                <div className="bg-surface-900/60 border border-surface-800 rounded-2xl backdrop-blur-md relative overflow-hidden">
+                  <div
+                    className={`absolute top-0 left-0 h-1 w-full bg-gradient-to-r ${
+                      lastOrderStatus === 'Retirado'
+                        ? 'from-secondary-500 to-secondary-600'
+                        : 'from-primary-500/70 to-secondary-500/70'
+                    }`}
+                  />
+
+                  <div className="p-5 space-y-4">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                      <div className="min-w-0 space-y-2">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="text-[10px] bg-surface-800 text-surface-300 border border-surface-700 px-2 py-0.5 rounded font-semibold uppercase tracking-wider">
+                            Última Orden de Farmacia
+                          </span>
+                          <span className="text-xs font-mono font-semibold text-surface-500">ID: #ORD-9923</span>
+                        </div>
+                        <h3 className="text-sm font-medium text-white">Retiro de Medicamentos (Receta Activa)</h3>
+                        <p className="text-xs text-surface-400 leading-relaxed max-w-2xl">
+                          Retira en Farmacia Central (Sanatorio Zenith) • Pasillo B, Mostrador 3
+                        </p>
+                      </div>
+
+                      <span
+                        className={`inline-flex self-start shrink-0 px-2.5 py-1 rounded-full text-[10px] font-bold border ${
+                          lastOrderStatus === 'Retirado'
+                            ? 'bg-secondary-500/10 text-secondary-400 border-secondary-500/25'
+                            : lastOrderStatus === 'Listo para retirar'
+                              ? 'bg-primary-500/10 text-primary-400 border-primary-500/25'
+                              : 'bg-surface-800 text-surface-300 border-surface-700'
+                        }`}
+                      >
+                        {lastOrderStatus}
+                      </span>
                     </div>
-                    <h3 className="text-sm font-medium text-white">Retiro de Medicamentos (Receta Activa)</h3>
-                    <p className="text-xs text-surface-400">Retira en Farmacia Central (Sanatorio Zenith) • Pasillo B, Mostrador 3</p>
-                  </div>
 
-                  <div className="flex flex-col space-y-2 z-10 w-full min-w-0 md:shrink-0">
-                    <span className="text-[10px] text-surface-500 font-bold uppercase md:text-right">Progreso de Entrega</span>
-                    <div className="overflow-x-auto -mx-5 px-5 md:mx-0 md:px-0 touch-pan-x overscroll-x-contain [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-                      <div className="flex items-center gap-3 w-max min-w-full md:min-w-0">
-                        <div className="flex items-center bg-surface-950 border border-surface-850 px-4 py-2.5 rounded-xl gap-6 shrink-0">
-                        {/* Step 1: Pendiente */}
-                        <div className="flex items-center gap-2 relative shrink-0">
-                          <span className={`h-5 w-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
-                            lastOrderStatus === 'Pendiente por retirar' 
-                              ? 'bg-white text-surface-950 font-semibold' 
-                              : 'bg-surface-800 text-surface-500'
-                          }`}>
-                            {lastOrderStatus === 'Listo para retirar' || lastOrderStatus === 'Retirado' ? (
-                              <CheckCircle2 className="h-4.5 w-4.5 text-secondary-400" />
-                            ) : '1'}
-                          </span>
-                          <span className={`text-2xs font-semibold whitespace-nowrap ${
-                            lastOrderStatus === 'Pendiente por retirar' ? 'text-white font-semibold' : 'text-surface-500'
-                          }`}>Pendiente</span>
-                        </div>
-
-                        <span className="h-0.5 w-6 bg-surface-800 shrink-0"></span>
-
-                        {/* Step 2: Listo */}
-                        <div className="flex items-center gap-2 relative shrink-0">
-                          <span className={`h-5 w-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
-                            lastOrderStatus === 'Listo para retirar' 
-                              ? 'bg-surface-700 text-white font-semibold' 
-                              : lastOrderStatus === 'Retirado'
-                              ? <CheckCircle2 className="h-4.5 w-4.5 text-secondary-400" />
-                              : '2'
-                          }`}>
-                            {lastOrderStatus === 'Retirado' ? (
-                              <CheckCircle2 className="h-4.5 w-4.5 text-secondary-400" />
-                            ) : '2'}
-                          </span>
-                          <span className={`text-2xs font-semibold whitespace-nowrap ${
-                            lastOrderStatus === 'Listo para retirar' ? 'text-white font-semibold' : 'text-surface-550'
-                          }`}>Listo para Retirar</span>
-                        </div>
-
-                        <span className="h-0.5 w-6 bg-surface-800 shrink-0"></span>
-
-                        {/* Step 3: Retirado */}
-                        <div className="flex items-center gap-2 relative shrink-0">
-                          <span className={`h-5 w-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
-                            lastOrderStatus === 'Retirado' 
-                              ? 'bg-surface-600 text-white font-semibold' 
-                              : 'bg-surface-800 text-surface-500'
-                          }`}>
-                            3
-                          </span>
-                          <span className={`text-2xs font-semibold whitespace-nowrap ${
-                            lastOrderStatus === 'Retirado' ? 'text-secondary-400 font-bold' : 'text-surface-500'
-                          }`}>Retirado</span>
-                        </div>
-                        </div>
-
-                        <button 
-                          onClick={cycleOrderStatus} 
-                          className="p-2.5 bg-surface-800 hover:bg-surface-700 text-surface-400 hover:text-white rounded-xl border border-surface-700 transition-colors cursor-pointer shrink-0"
+                    <div className="border-t border-surface-800/80 pt-4 space-y-3">
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="text-[10px] text-surface-500 font-bold uppercase tracking-wider">
+                          Progreso de Entrega
+                        </span>
+                        <button
+                          type="button"
+                          onClick={cycleOrderStatus}
+                          className="p-2 bg-surface-800 hover:bg-surface-700 text-surface-400 hover:text-white rounded-lg border border-surface-700 transition-colors cursor-pointer shrink-0"
                           title="Simular actualización del estado de entrega"
                         >
-                          <PackageCheck className="h-4.5 w-4.5" />
+                          <PackageCheck className="h-4 w-4" />
                         </button>
                       </div>
+
+                      <ol className="grid grid-cols-3 gap-2 sm:gap-4">
+                        {orderDeliverySteps.map((step, index) => {
+                          const isComplete = index < activeOrderStepIndex;
+                          const isActive = index === activeOrderStepIndex;
+
+                          return (
+                            <li key={step.id} className="flex min-w-0 flex-col items-center gap-2 text-center">
+                              <div className="flex w-full items-center">
+                                {index > 0 ? (
+                                  <span
+                                    className={`h-0.5 flex-1 ${
+                                      index <= activeOrderStepIndex ? 'bg-secondary-500/40' : 'bg-surface-800'
+                                    }`}
+                                  />
+                                ) : (
+                                  <span className="flex-1" aria-hidden />
+                                )}
+
+                                <span
+                                  className={`mx-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${
+                                    isComplete
+                                      ? 'bg-secondary-500/15 text-secondary-400'
+                                      : isActive
+                                        ? 'bg-white text-surface-950'
+                                        : 'bg-surface-800 text-surface-500'
+                                  }`}
+                                >
+                                  {isComplete ? <CheckCircle2 className="h-4 w-4" /> : index + 1}
+                                </span>
+
+                                {index < orderDeliverySteps.length - 1 ? (
+                                  <span
+                                    className={`h-0.5 flex-1 ${
+                                      index < activeOrderStepIndex ? 'bg-secondary-500/40' : 'bg-surface-800'
+                                    }`}
+                                  />
+                                ) : (
+                                  <span className="flex-1" aria-hidden />
+                                )}
+                              </div>
+
+                              <span
+                                className={`text-[10px] font-semibold leading-tight ${
+                                  isActive
+                                    ? 'text-white'
+                                    : isComplete
+                                      ? 'text-secondary-400'
+                                      : 'text-surface-500'
+                                }`}
+                              >
+                                {step.label}
+                              </span>
+                            </li>
+                          );
+                        })}
+                      </ol>
                     </div>
                   </div>
-
-                  <div className={`absolute top-0 right-0 h-1 w-full bg-gradient-to-r ${
-                    lastOrderStatus === 'Pendiente por retirar' 
-                      ? 'from-surface-500 to-surface-700'
-                      : lastOrderStatus === 'Listo para retirar'
-                      ? 'from-surface-500 to-surface-700'
-                      : 'from-surface-600 to-surface-500'
-                  }`}></div>
                 </div>
 
                 {/* Recipes Table Card */}
