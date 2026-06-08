@@ -124,6 +124,8 @@ export default function PatientView({ patientName, patientEmail, onLogout }: Pat
 
   // Payment States (Pantalla P.3)
   const [paymentMethod, setPaymentMethod] = useState<'mobile' | 'transfer'>('mobile');
+  const [mobileSenderPhone, setMobileSenderPhone] = useState('');
+  const [mobileAmountBs, setMobileAmountBs] = useState('');
   const [referenceNumber, setReferenceNumber] = useState('');
   const [paymentTimeLeft, setPaymentTimeLeft] = useState(900); // 15 minutes in seconds
   const [paymentError, setPaymentError] = useState('');
@@ -239,6 +241,8 @@ export default function PatientView({ patientName, patientEmail, onLogout }: Pat
     }
     setPaymentTimeLeft(900);
     setPaymentError('');
+    setMobileSenderPhone('');
+    setMobileAmountBs('');
     setReferenceNumber('');
     setActiveSubTab('payment');
   };
@@ -247,13 +251,29 @@ export default function PatientView({ patientName, patientEmail, onLogout }: Pat
     e.preventDefault();
     setPaymentError('');
 
-    if (!referenceNumber) {
-      setPaymentError('Por favor ingrese el número de referencia de la transacción.');
-      return;
-    }
-    if (referenceNumber.length < 5) {
-      setPaymentError('El número de referencia debe contener al menos 5 dígitos.');
-      return;
+    if (paymentMethod === 'mobile') {
+      if (!mobileSenderPhone) {
+        setPaymentError('Por favor ingrese el número de teléfono emisor.');
+        return;
+      }
+      if (!mobileAmountBs) {
+        setPaymentError('Por favor ingrese el monto en Bolívares (Bs.).');
+        return;
+      }
+      const amount = parseFloat(mobileAmountBs.replace(',', '.'));
+      if (isNaN(amount) || amount <= 0) {
+        setPaymentError('El monto en Bolívares no es válido.');
+        return;
+      }
+    } else {
+      if (!referenceNumber) {
+        setPaymentError('Por favor ingrese el número de referencia de la transacción.');
+        return;
+      }
+      if (referenceNumber.length < 5) {
+        setPaymentError('El número de referencia debe contener al menos 5 dígitos.');
+        return;
+      }
     }
 
     const randVoucher = `VOU-2026-${Math.floor(100000 + Math.random() * 900000)}`;
@@ -775,32 +795,25 @@ export default function PatientView({ patientName, patientEmail, onLogout }: Pat
 
                       {paymentMethod === 'mobile' && (
                         <div className="p-4 bg-surface-950/50 border border-surface-850 rounded-xl space-y-4 text-xs">
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-surface-450">
-                            <div>
-                              <p className="font-semibold text-surface-500">Banco de Destino</p>
-                              <p className="font-bold text-white mt-0.5">Banco de España (0030)</p>
-                            </div>
-                            <div>
-                              <p className="font-semibold text-surface-500">Teléfono Afiliado</p>
-                              <p className="font-bold text-white mt-0.5">+34 600 123 456</p>
-                            </div>
-                            <div>
-                              <p className="font-semibold text-surface-500">Identificación (CIF)</p>
-                              <p className="font-bold text-white mt-0.5">B-12994821</p>
-                            </div>
-                            <div>
-                              <p className="font-semibold text-surface-500">Monto exacto a transferir</p>
-                              <p className="font-bold text-primary-400 mt-0.5">${totals.netTotal.toFixed(2)}</p>
-                            </div>
+                          <div className="space-y-1.5">
+                            <label className="zenith-field-label">Número de teléfono emisor</label>
+                            <input
+                              type="tel"
+                              placeholder="Ej: 04141234567"
+                              value={mobileSenderPhone}
+                              onChange={(e) => setMobileSenderPhone(e.target.value)}
+                              className="w-full bg-surface-950 border border-surface-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-primary-500 placeholder-surface-700"
+                            />
                           </div>
 
-                          <div className="space-y-1.5 pt-2 border-t border-surface-850">
-                            <label className="zenith-field-label">Número de Referencia del Pago Móvil</label>
+                          <div className="space-y-1.5">
+                            <label className="zenith-field-label">Monto en Bolívares (Bs.)</label>
                             <input
                               type="text"
-                              placeholder="Ej: 882103"
-                              value={referenceNumber}
-                              onChange={(e) => setReferenceNumber(e.target.value)}
+                              inputMode="decimal"
+                              placeholder="Ej: 1250.50"
+                              value={mobileAmountBs}
+                              onChange={(e) => setMobileAmountBs(e.target.value)}
                               className="w-full bg-surface-950 border border-surface-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-primary-500 placeholder-surface-700"
                             />
                           </div>
@@ -979,10 +992,19 @@ export default function PatientView({ patientName, patientEmail, onLogout }: Pat
 
                     <div className="border-t border-surface-200 pt-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-surface-455 text-[10px]">
                       <div>
-                        <p className="font-semibold text-surface-600">Referencia de Pago Registrada:</p>
-                        <p className="font-mono text-surface-800 font-bold mt-0.5">
-                          {referenceNumber}
-                        </p>
+                        {paymentMethod === 'mobile' ? (
+                          <>
+                            <p className="font-semibold text-surface-600">Teléfono emisor:</p>
+                            <p className="font-mono text-surface-800 font-bold mt-0.5">{mobileSenderPhone}</p>
+                            <p className="font-semibold text-surface-600 mt-2">Monto en Bolívares (Bs.):</p>
+                            <p className="font-mono text-surface-800 font-bold mt-0.5">{mobileAmountBs} Bs.</p>
+                          </>
+                        ) : (
+                          <>
+                            <p className="font-semibold text-surface-600">Referencia de Pago Registrada:</p>
+                            <p className="font-mono text-surface-800 font-bold mt-0.5">{referenceNumber}</p>
+                          </>
+                        )}
                       </div>
                       
                       <div className="flex items-center gap-1.5 text-secondary-605 font-bold">
