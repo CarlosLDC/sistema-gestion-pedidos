@@ -763,7 +763,7 @@ export default function PatientView({ patientName, patientEmail, onLogout }: Pat
                   />
                   <StatCard
                     icon={TrendingUp}
-                    label="Adherencia Semanal"
+                    label="Registro Semanal"
                     value={`${weeklyAdherencePercent}%`}
                     hint={<span>Promedio de los últimos 7 días</span>}
                   />
@@ -995,7 +995,7 @@ export default function PatientView({ patientName, patientEmail, onLogout }: Pat
 
                     <div className="bg-surface-900/60 border border-surface-800 rounded-2xl p-6 backdrop-blur-md space-y-4">
                       <div>
-                        <h3 className="zenith-section-title">Adherencia Semanal</h3>
+                        <h3 className="zenith-section-title">Registro Semanal</h3>
                         <p className="text-xs text-surface-400">Porcentaje de tomas completadas por día.</p>
                       </div>
 
