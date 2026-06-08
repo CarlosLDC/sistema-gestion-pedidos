@@ -102,7 +102,7 @@
   --zenith-surface-150: #070e18;
   --zenith-surface-100: #040a12;
 
-  --color-primary: #50e9f8;
+  --color-primary: #0b7f8b;
   --color-secondary: #179150;
 
   --portal-patient-btn-bg: #7c5cb7;
@@ -115,15 +115,15 @@
   --portal-doctor-btn-hover: #095c67;
   --portal-doctor-btn-border: #095c67;
 
-  --color-primary-300: color-mix(in srgb, var(--color-primary) 52%, #4a6672);
-  --color-primary-400: color-mix(in srgb, var(--color-primary) 66%, #2f4f5c);
-  --color-primary-450: color-mix(in srgb, var(--color-primary) 72%, #24424f);
-  --color-primary-500: color-mix(in srgb, var(--color-primary) 78%, #1a3844);
-  --color-primary-550: color-mix(in srgb, var(--color-primary) 82%, #142f3a);
-  --color-primary-600: color-mix(in srgb, var(--color-primary) 88%, #0d252f);
-  --color-primary-650: #086b79;
-  --color-primary-700: #065a66;
-  --color-primary-900: color-mix(in srgb, var(--color-primary) 14%, #f1f5f9);
+  --color-primary-300: #064f58;
+  --color-primary-400: #08616c;
+  --color-primary-450: #096b77;
+  --color-primary-500: #0a7582;
+  --color-primary-550: #0b7f8b;
+  --color-primary-600: #054a54;
+  --color-primary-650: #044550;
+  --color-primary-700: #033a42;
+  --color-primary-900: color-mix(in srgb, var(--color-primary) 38%, #dceff1);
 
   --color-secondary-300: color-mix(in srgb, var(--color-secondary) 50%, #3d6b52);
   --color-secondary-400: color-mix(in srgb, var(--color-secondary) 64%, #2a5540);
@@ -357,12 +357,46 @@ body {
   background-color: var(--zenith-surface-950) !important;
 }
 
+[data-theme="light"] .zenith-page-title {
+  color: var(--color-primary-300);
+}
+
+[data-theme="light"] .zenith-section-title {
+  color: var(--color-primary-400);
+}
+
 [data-theme="light"] .zenith-page-subtitle {
   color: var(--zenith-surface-550);
 }
 
 [data-theme="light"] .zenith-field-label {
   color: var(--zenith-surface-600);
+}
+
+[data-theme="light"] :is(
+  .text-primary-300,
+  .text-primary-400,
+  .text-primary-450,
+  .text-primary-500
+) {
+  color: var(--color-primary-400);
+}
+
+[data-theme="light"] :is(
+  .border-primary-500\/10,
+  .border-primary-500\/15,
+  .border-primary-500\/20,
+  .border-primary-500\/25
+) {
+  border-color: color-mix(in srgb, var(--color-primary-500) 55%, #8ec5cd) !important;
+}
+
+[data-theme="light"] :is(
+  .bg-primary-500\/5,
+  .bg-primary-500\/10,
+  .bg-primary-500\/15
+) {
+  background-color: color-mix(in srgb, var(--color-primary-500) 22%, #e8f4f5) !important;
 }
 
 [data-theme="light"] .cms-patient-banner-preview__badge {
@@ -372,10 +406,10 @@ body {
 [data-theme="light"] .cms-patient-banner-preview {
   background: linear-gradient(
     135deg,
-    color-mix(in srgb, var(--color-primary) 24%, #f0fdfa) 0%,
-    color-mix(in srgb, var(--color-primary) 10%, #f8fafc) 100%
+    color-mix(in srgb, var(--color-primary) 58%, #c2e4e8) 0%,
+    color-mix(in srgb, var(--color-primary) 42%, #d9eef1) 100%
   );
-  border-color: color-mix(in srgb, var(--color-primary) 42%, #cbd5e1);
+  border-color: color-mix(in srgb, var(--color-primary) 72%, #7eb4bc);
 }
 
 [data-theme="light"] .cms-patient-banner-preview__subtitle {
@@ -383,13 +417,13 @@ body {
 }
 
 [data-theme="light"] .cms-patient-banner-preview__icon {
-  color: var(--color-primary-650);
-  background: color-mix(in srgb, var(--color-primary) 18%, #ffffff);
-  border-color: color-mix(in srgb, var(--color-primary) 45%, #e2e8f0);
+  color: var(--color-primary-700);
+  background: color-mix(in srgb, var(--color-primary) 48%, #ffffff);
+  border-color: color-mix(in srgb, var(--color-primary) 68%, #8ec5cd);
 }
 
 [data-theme="light"] .cms-patient-banner-preview__glow {
-  background: color-mix(in srgb, var(--color-primary) 28%, transparent);
+  background: color-mix(in srgb, var(--color-primary) 45%, #b8dde2);
 }
 
 ::-webkit-scrollbar {
