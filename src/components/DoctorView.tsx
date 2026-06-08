@@ -385,7 +385,7 @@ export default function DoctorView({ doctorName, doctorEmail, onLogout }: Doctor
             items={[
               { id: 'agenda', name: 'Agenda del Día', icon: Calendar },
               { id: 'reception', name: 'Recepción y Escáner', icon: QrCode },
-              { id: 'prescription', name: 'Prescribir con IA', icon: FileText },
+              { id: 'prescription', name: 'Generar Récipe', icon: FileText },
               { id: 'commissions', name: 'Comisiones', icon: TrendingUp },
               { id: 'profile', name: 'Mi Perfil', icon: Users },
             ]}
