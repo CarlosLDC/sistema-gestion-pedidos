@@ -24,7 +24,12 @@ import {
   ArrowRight,
   ShieldCheck,
   Building,
-  Info
+  Info,
+  CreditCard,
+  QrCode,
+  DollarSign,
+  AlertTriangle,
+  Receipt
 } from 'lucide-react';
 
 interface PatientViewProps {
@@ -85,30 +90,29 @@ const MOCK_RECIPES: Recipe[] = [
   }
 ];
 
-// Proposal items interface
 interface ProposalItem {
   id: string;
   medication: string;
   quantity: number;
   unitPrice: number;
-  discountPercent: number; // Applied by Doctor
+  discountPercent: number;
 }
 
 export default function PatientView({ patientName, patientEmail, onLogout }: PatientViewProps) {
-  // Navigation Tabs: 'recipes' or 'proposals'
-  const [activeSubTab, setActiveSubTab] = useState<'recipes' | 'proposals'>('recipes');
+  // Navigation Tabs: 'recipes' (P.1), 'proposals' (P.2), 'payment' (P.3)
+  const [activeSubTab, setActiveSubTab] = useState<'recipes' | 'proposals' | 'payment'>('recipes');
 
   const [recipes] = useState<Recipe[]>(MOCK_RECIPES);
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   
-  // Last Order State
+  // Last Order State (P.1)
   const [lastOrderStatus, setLastOrderStatus] = useState<'Pendiente por retirar' | 'Listo para retirar' | 'Retirado'>('Listo para retirar');
   
   // QR Code Expiry State
   const [qrToken, setQrToken] = useState('PX-992-8812');
   const [qrSecondsLeft, setQrSecondsLeft] = useState(30);
 
-  // Proposal states (Pantalla P.2)
+  // Proposal states (P.2)
   const [proposalItems] = useState<ProposalItem[]>([
     { id: 'prop-1', medication: 'Ramipril 5mg (28 Comprimidos)', quantity: 1, unitPrice: 12.50, discountPercent: 20 },
     { id: 'prop-2', medication: 'Aspirina 100mg (30 Comprimidos)', quantity: 1, unitPrice: 6.00, discountPercent: 10 }
@@ -116,7 +120,22 @@ export default function PatientView({ patientName, patientEmail, onLogout }: Pat
   const [selectedBranch, setSelectedBranch] = useState('Farma-Humana Central (Av. de la Castellana 210)');
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [isTermsModalOpen, setIsTermsModalOpen] = useState(false);
-  const [showSuccessToast, setShowSuccessToast] = useState(false);
+
+  // Payment states (P.3)
+  const [pendingPayment, setPendingPayment] = useState(false);
+  const [paymentSecondsLeft, setPaymentSecondsLeft] = useState(900); // 15 minutes (900s)
+  const [paymentActive, setPaymentActive] = useState(false);
+  const [paymentStatus, setPaymentStatus] = useState<'Pendiente' | 'Completado'>('Pendiente');
+  const [paymentMethod, setPaymentMethod] = useState<'bizum' | 'transfer' | 'card'>('card');
+  const [invoiceNumber, setInvoiceNumber] = useState('');
+
+  // Payment Form Fields
+  const [phoneBizum, setPhoneBizum] = useState('');
+  const [refBizum, setRefBizum] = useState('');
+  const [refTransfer, setRefTransfer] = useState('');
+  const [cardNum, setCardNum] = useState('');
+  const [cardHolder, setCardHolder] = useState('');
+  const [cardCVV, setCardCVV] = useState('');
 
   // Calculations for Proposal
   const calculateItemSubtotal = (item: ProposalItem) => {
@@ -148,7 +167,7 @@ export default function PatientView({ patientName, patientEmail, onLogout }: Pat
 
   const totals = getProposalTotals();
 
-  // Rotate QR code token every 30 seconds
+  // QR Code rotative timer
   useEffect(() => {
     const timer = setInterval(() => {
       setQrSecondsLeft((prev) => {
@@ -163,6 +182,27 @@ export default function PatientView({ patientName, patientEmail, onLogout }: Pat
     return () => clearInterval(timer);
   }, []);
 
+  // 15-Minute Payment Countdown timer
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (paymentActive && paymentSecondsLeft > 0 && paymentStatus === 'Pendiente') {
+      timer = setInterval(() => {
+        setPaymentSecondsLeft(prev => {
+          if (prev <= 1) {
+            setPaymentStatus('Pendiente');
+            setPaymentActive(false);
+            setPendingPayment(false);
+            alert('El tiempo de reserva de inventario de 15 minutos ha expirado. Por favor valide e intente nuevamente.');
+            setActiveSubTab('proposals');
+            return 900;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [paymentActive, paymentSecondsLeft, paymentStatus]);
+
   const handleRefreshQR = () => {
     const rand = Math.floor(1000 + Math.random() * 9000);
     setQrToken(`PX-992-${rand}`);
@@ -175,21 +215,58 @@ export default function PatientView({ patientName, patientEmail, onLogout }: Pat
     else setLastOrderStatus('Pendiente por retirar');
   };
 
-  const handleConfirmOrder = () => {
+  // P.2 Dispatch Action
+  const handleConfirmProposal = () => {
     if (!termsAccepted) {
-      alert('Debe leer y aceptar los Términos y Condiciones de Farma-Humana antes de continuar.');
+      alert('Debe aceptar los Términos y Condiciones de Farma-Humana.');
       return;
     }
     
-    // Simulate Order Dispatch
-    setShowSuccessToast(true);
-    setLastOrderStatus('Pendiente por retirar'); // Update last order progress
+    // Dispatch to branch -> Allocate inventory and trigger payment passthrough (P.3)
+    setPendingPayment(true);
+    setPaymentSecondsLeft(900); // 15 mins
+    setPaymentActive(true);
+    setPaymentStatus('Pendiente');
+    setLastOrderStatus('Pendiente por retirar');
     
-    // Auto close toast after 4s
-    setTimeout(() => {
-      setShowSuccessToast(false);
-      setActiveSubTab('recipes'); // Return to main recipes dashboard
-    }, 4000);
+    // Navigate straight to P.3
+    setActiveSubTab('payment');
+  };
+
+  // P.3 Submit Payment Action
+  const handleRegisterPayment = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Validations based on selected method
+    if (paymentMethod === 'bizum') {
+      if (!phoneBizum || !refBizum) {
+        alert('Por favor complete todos los datos de Pago Móvil / Bizum.');
+        return;
+      }
+    } else if (paymentMethod === 'transfer') {
+      if (!refTransfer) {
+        alert('Por favor introduzca el número de referencia de la transferencia.');
+        return;
+      }
+    } else if (paymentMethod === 'card') {
+      if (!cardNum || !cardHolder || !cardCVV) {
+        alert('Por favor rellene todos los campos de su tarjeta de crédito.');
+        return;
+      }
+    }
+
+    // Process payment
+    const randReceipt = `FAC-2026-${Math.floor(100000 + Math.random() * 900000)}`;
+    setInvoiceNumber(randReceipt);
+    setPaymentStatus('Completado');
+    setLastOrderStatus('Listo para retirar'); // Order transitions to ready for pickup!
+    setPaymentActive(false);
+  };
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
   return (
@@ -221,7 +298,6 @@ export default function PatientView({ patientName, patientEmail, onLogout }: Pat
           </div>
 
           <div className="flex flex-col items-center bg-white p-3 rounded-xl shadow-inner relative group border border-slate-700/10">
-            {/* Custom SVG QR Code Representation */}
             <svg viewBox="0 0 100 100" className="w-28 h-28 text-slate-900">
               <rect x="0" y="0" width="20" height="20" fill="currentColor" />
               <rect x="5" y="5" width="10" height="10" fill="white" />
@@ -282,6 +358,24 @@ export default function PatientView({ patientName, patientEmail, onLogout }: Pat
             <FileSpreadsheet className={`h-5 w-5 ${activeSubTab === 'proposals' ? 'text-indigo-400' : ''}`} />
             <span>Propuestas de Compra</span>
           </button>
+
+          {/* Conditional Payment Sidebar Tab */}
+          <button 
+            onClick={() => setActiveSubTab('payment')}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
+              activeSubTab === 'payment'
+                ? 'bg-gradient-to-r from-indigo-500/10 to-cyan-500/10 text-white border-l-2 border-indigo-500'
+                : 'text-slate-400 hover:text-slate-250 hover:bg-slate-850/50 border-l-2 border-transparent'
+            }`}
+          >
+            <CreditCard className={`h-5 w-5 ${activeSubTab === 'payment' ? 'text-indigo-400' : ''}`} />
+            <div className="flex-1 text-left flex justify-between items-center">
+              <span>Pasarela de Pago</span>
+              {pendingPayment && paymentStatus === 'Pendiente' && (
+                <span className="h-2 w-2 rounded-full bg-rose-500 animate-ping"></span>
+              )}
+            </div>
+          </button>
           
           <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-850/50 border-l-2 border-transparent">
             <Calendar className="h-5 w-5" />
@@ -290,7 +384,7 @@ export default function PatientView({ patientName, patientEmail, onLogout }: Pat
         </nav>
 
         {/* Footer Profile & Logout */}
-        <div className="p-4 border-t border-slate-850 bg-slate-950/20 space-y-3">
+        <div className="p-4 border-t border-slate-855 bg-slate-950/20 space-y-3">
           <div className="flex items-center gap-3 p-1">
             <div className="h-9 w-9 rounded-full bg-indigo-600 flex items-center justify-center font-bold text-white text-xs">
               SP
@@ -324,23 +418,10 @@ export default function PatientView({ patientName, patientEmail, onLogout }: Pat
         {/* Content body */}
         <main className="flex-1 overflow-y-auto p-8">
           <div className="max-w-5xl mx-auto">
-            
-            {/* SUCCESS DISPATCH TOAST NOTIFICATION */}
-            {showSuccessToast && (
-              <div className="mb-6 p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl flex items-center gap-3.5 animate-in fade-in slide-in-from-top-4 duration-300">
-                <div className="h-10 w-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
-                  <ShieldCheck className="h-6 w-6" />
-                </div>
-                <div>
-                  <h4 className="text-sm font-bold text-white">¡Propuesta Comercial Confirmada con Éxito!</h4>
-                  <p className="text-xs text-slate-400 mt-0.5">El pedido ha sido despachado a la sucursal de Farma-Humana seleccionada. Ya puedes ver el estado actualizado en tus Récipes.</p>
-                </div>
-              </div>
-            )}
 
             {/* TAB 1: RECIPES VIEW (Pantalla P.1) */}
             {activeSubTab === 'recipes' && (
-              <div className="space-y-6">
+              <div className="space-y-6 animate-in fade-in duration-200">
                 <div>
                   <h2 className="text-2xl font-bold text-white tracking-tight">Historial de Récipes Médicos</h2>
                   <p className="text-sm text-slate-400">Consulte, visualice e imprima sus recetas prescritas vigentes.</p>
@@ -354,7 +435,7 @@ export default function PatientView({ patientName, patientEmail, onLogout }: Pat
                       <span className="text-xs font-mono font-semibold text-slate-500">ID: #ORD-9923</span>
                     </div>
                     <h3 className="text-sm font-bold text-white">Retiro de Medicamentos (Receta Activa)</h3>
-                    <p className="text-xs text-slate-400">Retira en Farmacia Central (Sanatorio Zenith) • Pasillo B, Mostrador 3</p>
+                    <p className="text-xs text-slate-400">Retira en {selectedBranch}</p>
                   </div>
 
                   <div className="flex flex-col space-y-2 z-10 shrink-0">
@@ -500,7 +581,7 @@ export default function PatientView({ patientName, patientEmail, onLogout }: Pat
 
             {/* TAB 2: COMMERCIAL PROPOSAL & BILLING (Pantalla P.2) */}
             {activeSubTab === 'proposals' && (
-              <div className="space-y-6">
+              <div className="space-y-6 animate-in fade-in duration-200">
                 <div>
                   <h2 className="text-2xl font-bold text-white tracking-tight">Confirmación de Pedido y Facturación</h2>
                   <p className="text-sm text-slate-400">Valide la propuesta comercial enviada desde la consulta de su médico especialista.</p>
@@ -508,7 +589,6 @@ export default function PatientView({ patientName, patientEmail, onLogout }: Pat
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                   
-                  {/* Proposal Breakdown Table (2/3 width) */}
                   <div className="lg:col-span-2 bg-slate-900/60 border border-slate-800 rounded-2xl p-6 backdrop-blur-md space-y-4">
                     <div className="flex justify-between items-center">
                       <div>
@@ -557,7 +637,6 @@ export default function PatientView({ patientName, patientEmail, onLogout }: Pat
                       })}
                     </div>
 
-                    {/* Terms Checklist warning banner before confirmation */}
                     <div className="pt-4 border-t border-slate-850 flex flex-col sm:flex-row items-center justify-between gap-4">
                       <div className="flex items-center gap-2">
                         {termsAccepted ? (
@@ -565,7 +644,7 @@ export default function PatientView({ patientName, patientEmail, onLogout }: Pat
                             <Check className="h-3.5 w-3.5" />
                           </div>
                         ) : (
-                          <div className="h-5 w-5 rounded-full bg-rose-500/10 text-rose-450 flex items-center justify-center border border-rose-500/25">
+                          <div className="h-5 w-5 rounded-full bg-rose-500/10 text-rose-455 flex items-center justify-center border border-rose-500/25">
                             <Info className="h-3.5 w-3.5" />
                           </div>
                         )}
@@ -586,10 +665,8 @@ export default function PatientView({ patientName, patientEmail, onLogout }: Pat
                     </div>
                   </div>
 
-                  {/* Facturación Invoice Box & Dispatch (1/3 width) */}
                   <div className="space-y-6">
                     
-                    {/* Totals Summary */}
                     <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 backdrop-blur-md space-y-4">
                       <h3 className="font-bold text-white text-base">Resumen de Facturación</h3>
 
@@ -618,7 +695,6 @@ export default function PatientView({ patientName, patientEmail, onLogout }: Pat
                       </div>
                     </div>
 
-                    {/* Pharmacy branch selection router */}
                     <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 backdrop-blur-md space-y-4">
                       <h3 className="font-bold text-white text-sm flex items-center gap-2">
                         <Building className="h-4 w-4 text-slate-400" />
@@ -626,7 +702,7 @@ export default function PatientView({ patientName, patientEmail, onLogout }: Pat
                       </h3>
                       
                       <div className="space-y-2">
-                        <label className="text-2xs text-slate-500 font-bold uppercase">Seleccione Sucursal de Destino</label>
+                        <label className="text-2xs text-slate-550 font-bold uppercase">Seleccione Sucursal de Destino</label>
                         <select
                           value={selectedBranch}
                           onChange={(e) => setSelectedBranch(e.target.value)}
@@ -643,9 +719,8 @@ export default function PatientView({ patientName, patientEmail, onLogout }: Pat
                       </p>
                     </div>
 
-                    {/* Confirm and Dispatch Button */}
                     <button
-                      onClick={handleConfirmOrder}
+                      onClick={handleConfirmProposal}
                       disabled={!termsAccepted}
                       className={`w-full py-3.5 font-bold text-sm rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer ${
                         termsAccepted 
@@ -660,6 +735,365 @@ export default function PatientView({ patientName, patientEmail, onLogout }: Pat
                   </div>
 
                 </div>
+
+              </div>
+            )}
+
+            {/* TAB 3: PAYMENT GATEWAY & TIMER (Pantalla P.3) */}
+            {activeSubTab === 'payment' && (
+              <div className="space-y-6 animate-in fade-in duration-200">
+                <div>
+                  <h2 className="text-2xl font-bold text-white tracking-tight">Pasarela de Confirmación de Pago</h2>
+                  <p className="text-sm text-slate-400">Complete su pago digital antes de que finalice la reserva temporal de su inventario.</p>
+                </div>
+
+                {!pendingPayment || paymentStatus === 'Completado' ? (
+                  /* Completed State or No Pending Payments */
+                  <div className="space-y-6">
+                    {paymentStatus === 'Completado' ? (
+                      /* Printable Invoice/Receipt layout */
+                      <div className="bg-white text-slate-900 border border-slate-200 rounded-3xl p-8 shadow-2xl space-y-6 max-w-2xl mx-auto print:p-0 print:border-none print:shadow-none">
+                        
+                        {/* Receipt Header */}
+                        <div className="flex justify-between items-start border-b border-slate-200 pb-5">
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2 text-indigo-900">
+                              <Receipt className="h-7 w-7 text-indigo-650" />
+                              <h1 className="text-xl font-black tracking-tight font-serif uppercase">Farma-Humana</h1>
+                            </div>
+                            <p className="text-[10px] text-slate-500">
+                              Sucursal asociada: {selectedBranch}<br />
+                              Fecha Pago: {new Date().toLocaleDateString('es-ES')}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <span className="text-xs font-mono font-bold bg-slate-100 border border-slate-350 px-2.5 py-1 rounded-full text-slate-750">
+                              {invoiceNumber}
+                            </span>
+                            <p className="text-[9px] text-slate-400 mt-1.5 font-bold uppercase text-emerald-600">Comprobante de Venta</p>
+                          </div>
+                        </div>
+
+                        {/* Invoice Metadata */}
+                        <div className="grid grid-cols-2 gap-4 text-xs bg-slate-50 p-4 rounded-xl">
+                          <div>
+                            <span className="text-[9px] text-slate-400 font-bold uppercase">Cliente / Paciente</span>
+                            <p className="font-bold text-slate-800 mt-0.5">{patientName}</p>
+                            <p className="text-[10px] text-slate-500 mt-0.5">Correo: {patientEmail}</p>
+                          </div>
+                          <div>
+                            <span className="text-[9px] text-slate-400 font-bold uppercase">Método Pago Registrado</span>
+                            <p className="font-bold text-slate-800 mt-0.5 capitalize">
+                              {paymentMethod === 'bizum' ? 'Bizum / Pago Móvil' : paymentMethod === 'transfer' ? 'Transferencia Bancaria' : 'Tarjeta de Crédito'}
+                            </p>
+                            <p className="text-[10px] text-emerald-600 font-bold mt-0.5">Estado: Transacción Verificada</p>
+                          </div>
+                        </div>
+
+                        {/* Invoice Items */}
+                        <div className="space-y-3">
+                          <h4 className="text-[10px] font-bold text-indigo-950 uppercase tracking-widest border-b border-slate-200 pb-1">Concepto de Facturación</h4>
+                          <div className="divide-y divide-slate-150 text-xs">
+                            {proposalItems.map(item => (
+                              <div key={item.id} className="py-2.5 flex justify-between">
+                                <div>
+                                  <span className="font-bold text-slate-800">{item.medication}</span>
+                                  <p className="text-[10px] text-slate-500">Cant: {item.quantity} • Descuento médico aplicado</p>
+                                </div>
+                                <span className="font-bold text-slate-800">${calculateItemSubtotal(item).toFixed(2)}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Total breakdowns */}
+                        <div className="border-t border-slate-200 pt-4 flex flex-col items-end text-xs space-y-1.5">
+                          <div className="flex justify-between w-48 text-slate-550">
+                            <span>Subtotal Neto</span>
+                            <span>${totals.netSubtotal.toFixed(2)}</span>
+                          </div>
+                          <div className="flex justify-between w-48 text-slate-550">
+                            <span>IVA (21%)</span>
+                            <span>${totals.vat.toFixed(2)}</span>
+                          </div>
+                          <div className="flex justify-between w-48 text-slate-900 border-t border-slate-200 pt-1.5 font-bold">
+                            <span className="text-sm">Total Pagado</span>
+                            <span className="text-sm text-indigo-650">${totals.netTotal.toFixed(2)}</span>
+                          </div>
+                        </div>
+
+                        {/* Transaction Verification footer details */}
+                        <div className="border-t border-slate-200 pt-5 flex items-center justify-between text-[9px] text-slate-400">
+                          <div>
+                            <p className="font-bold uppercase text-slate-500">Farma-Humana Digital Safe</p>
+                            <p className="mt-0.5">Firmado criptográficamente por Farma-Humana Co.</p>
+                          </div>
+                          <div className="flex items-center gap-1 text-emerald-600 font-bold uppercase border border-emerald-500/20 bg-emerald-50 px-2.5 py-1 rounded-lg select-none">
+                            <Check className="h-3.5 w-3.5" />
+                            <span>PAGO APROBADO</span>
+                          </div>
+                        </div>
+
+                        {/* Receipt action controls */}
+                        <div className="pt-4 flex justify-end gap-2 print:hidden">
+                          <button
+                            onClick={() => window.print()}
+                            className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all border border-slate-700 flex items-center gap-1 cursor-pointer"
+                          >
+                            <Printer className="h-4 w-4" />
+                            <span>Imprimir Comprobante</span>
+                          </button>
+                          <button
+                            onClick={() => {
+                              setPendingPayment(false);
+                              setPaymentStatus('Pendiente');
+                              setActiveSubTab('recipes'); // Return to recipes view
+                            }}
+                            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-550 text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-indigo-600/15 cursor-pointer"
+                          >
+                            Ir a Mis Récipes
+                          </button>
+                        </div>
+
+                      </div>
+                    ) : (
+                      /* No Pending Payments screen */
+                      <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-8 text-center max-w-md mx-auto space-y-4">
+                        <div className="h-12 w-12 rounded-full bg-slate-950 border border-slate-800 flex items-center justify-center mx-auto text-slate-500">
+                          <CreditCard className="h-6 w-6" />
+                        </div>
+                        <div className="space-y-1">
+                          <h3 className="font-bold text-white text-base">Sin Pagos Pendientes</h3>
+                          <p className="text-xs text-slate-400">No tienes ninguna propuesta comercial pendiente de facturación en este momento.</p>
+                        </div>
+                        <button
+                          onClick={() => setActiveSubTab('proposals')}
+                          className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                        >
+                          Ir a Propuestas de Compra
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  /* Active Pending Payment Gateway with Countdown Timer */
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    
+                    {/* Payment registration form (2/3 width) */}
+                    <div className="lg:col-span-2 bg-slate-900/60 border border-slate-800 rounded-2xl p-6 backdrop-blur-md space-y-5">
+                      <div className="border-b border-slate-850 pb-4">
+                        <h3 className="font-bold text-white text-base">Método de Pago Seleccionado</h3>
+                        <p className="text-xs text-slate-400">Seleccione su canal de pago preferido para registrar la transacción.</p>
+                      </div>
+
+                      {/* Payment method selector buttons */}
+                      <div className="grid grid-cols-3 gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setPaymentMethod('card')}
+                          className={`p-3 rounded-xl border text-center flex flex-col items-center gap-1.5 transition-all cursor-pointer ${
+                            paymentMethod === 'card'
+                              ? 'bg-indigo-500/10 border-indigo-500 text-indigo-400'
+                              : 'bg-slate-950/40 border-slate-850 text-slate-400 hover:border-slate-700'
+                          }`}
+                        >
+                          <CreditCard className="h-5 w-5" />
+                          <span className="text-2xs font-bold uppercase">Tarjeta Crédito</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => setPaymentMethod('bizum')}
+                          className={`p-3 rounded-xl border text-center flex flex-col items-center gap-1.5 transition-all cursor-pointer ${
+                            paymentMethod === 'bizum'
+                              ? 'bg-indigo-500/10 border-indigo-500 text-indigo-400'
+                              : 'bg-slate-950/40 border-slate-850 text-slate-400 hover:border-slate-700'
+                          }`}
+                        >
+                          <Phone className="h-5 w-5" />
+                          <span className="text-2xs font-bold uppercase">Bizum / Pago</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => setPaymentMethod('transfer')}
+                          className={`p-3 rounded-xl border text-center flex flex-col items-center gap-1.5 transition-all cursor-pointer ${
+                            paymentMethod === 'transfer'
+                              ? 'bg-indigo-500/10 border-indigo-500 text-indigo-400'
+                              : 'bg-slate-950/40 border-slate-850 text-slate-400 hover:border-slate-700'
+                          }`}
+                        >
+                          <Building className="h-5 w-5" />
+                          <span className="text-2xs font-bold uppercase">Transferencia</span>
+                        </button>
+                      </div>
+
+                      {/* Payment registration forms */}
+                      <form onSubmit={handleRegisterPayment} className="space-y-4">
+                        
+                        {/* 1. Credit Card Form */}
+                        {paymentMethod === 'card' && (
+                          <div className="space-y-3 p-4 bg-slate-950/40 border border-slate-850 rounded-xl animate-in fade-in duration-150">
+                            <div className="space-y-1.5">
+                              <label className="text-2xs font-bold text-slate-400 uppercase">Número de Tarjeta</label>
+                              <input
+                                type="text"
+                                placeholder="4000 1234 5678 9010"
+                                value={cardNum}
+                                onChange={(e) => setCardNum(e.target.value)}
+                                className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500"
+                              />
+                            </div>
+                            
+                            <div className="grid grid-cols-2 gap-3">
+                              <div className="space-y-1.5">
+                                <label className="text-2xs font-bold text-slate-400 uppercase">Titular de Tarjeta</label>
+                                <input
+                                  type="text"
+                                  placeholder="Sofia Peralta"
+                                  value={cardHolder}
+                                  onChange={(e) => setCardHolder(e.target.value)}
+                                  className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500"
+                                />
+                              </div>
+                              <div className="space-y-1.5">
+                                <label className="text-2xs font-bold text-slate-400 uppercase">CVV</label>
+                                <input
+                                  type="password"
+                                  placeholder="•••"
+                                  maxLength={3}
+                                  value={cardCVV}
+                                  onChange={(e) => setCardCVV(e.target.value)}
+                                  className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* 2. Bizum / Pago Móvil Form */}
+                        {paymentMethod === 'bizum' && (
+                          <div className="space-y-3 p-4 bg-slate-950/40 border border-slate-850 rounded-xl space-y-3 animate-in fade-in duration-150">
+                            <div className="p-3 bg-indigo-500/10 border border-indigo-500/15 rounded-lg text-[10px] text-indigo-350 leading-relaxed">
+                              Realice el pago móvil / Bizum por el importe exacto al número <strong>+34 600 123 456</strong> y registre los datos a continuación.
+                            </div>
+                            <div className="grid grid-cols-2 gap-3">
+                              <div className="space-y-1.5">
+                                <label className="text-2xs font-bold text-slate-400 uppercase">Número de Teléfono</label>
+                                <input
+                                  type="text"
+                                  placeholder="612 345 678"
+                                  value={phoneBizum}
+                                  onChange={(e) => setPhoneBizum(e.target.value)}
+                                  className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500"
+                                />
+                              </div>
+                              <div className="space-y-1.5">
+                                <label className="text-2xs font-bold text-slate-400 uppercase">Referencia de Pago</label>
+                                <input
+                                  type="text"
+                                  placeholder="REF-99120"
+                                  value={refBizum}
+                                  onChange={(e) => setRefBizum(e.target.value)}
+                                  className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* 3. Bank Transfer Form */}
+                        {paymentMethod === 'transfer' && (
+                          <div className="space-y-3 p-4 bg-slate-950/40 border border-slate-850 rounded-xl space-y-3 animate-in fade-in duration-150">
+                            <div className="p-3 bg-indigo-500/10 border border-indigo-500/15 rounded-lg text-[10px] text-indigo-350 leading-relaxed font-mono">
+                              IBAN FARMA-HUMANA: ES21 0049 1500 0512 3456 7890<br />
+                              Beneficiario: Farma-Humana S.A.
+                            </div>
+                            <div className="space-y-1.5">
+                              <label className="text-2xs font-bold text-slate-400 uppercase">Número de Referencia de Transferencia</label>
+                              <input
+                                type="text"
+                                placeholder="TR-2026-99238"
+                                value={refTransfer}
+                                onChange={(e) => setRefTransfer(e.target.value)}
+                                className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500"
+                              />
+                            </div>
+                          </div>
+                        )}
+
+                        <button
+                          type="submit"
+                          className="w-full py-3.5 bg-gradient-to-r from-indigo-500 to-cyan-500 text-white font-bold text-sm rounded-xl shadow-lg shadow-indigo-650/10 hover:shadow-indigo-650/25 hover:from-indigo-600 hover:to-cyan-600 transition-all cursor-pointer"
+                        >
+                          Enviar Registro de Pago
+                        </button>
+                      </form>
+                    </div>
+
+                    {/* Timer Countdown Panel (1/3 width) */}
+                    <div className="space-y-6">
+                      
+                      {/* Interactive countdown widget */}
+                      <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 backdrop-blur-md text-center space-y-4 relative overflow-hidden">
+                        <div className="space-y-1 z-10 relative">
+                          <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Tiempo Límite de Reserva</span>
+                          <div className={`text-3xl font-black font-mono tracking-widest py-2 select-none animate-pulse ${
+                            paymentSecondsLeft <= 60 
+                              ? 'text-rose-500' 
+                              : paymentSecondsLeft <= 300 
+                              ? 'text-amber-500' 
+                              : 'text-indigo-400'
+                          }`}>
+                            {formatTime(paymentSecondsLeft)}
+                          </div>
+                        </div>
+
+                        {/* Progress bar visual indicators */}
+                        <div className="h-1.5 w-full bg-slate-950 rounded-full overflow-hidden z-10 relative">
+                          <div 
+                            className={`h-full transition-all duration-1000 ease-linear ${
+                              paymentSecondsLeft <= 60 
+                                ? 'bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]' 
+                                : paymentSecondsLeft <= 300 
+                                ? 'bg-amber-500' 
+                                : 'bg-indigo-500'
+                            }`}
+                            style={{ width: `${(paymentSecondsLeft / 900) * 100}%` }}
+                          ></div>
+                        </div>
+
+                        <div className="flex items-start gap-2.5 p-3 bg-slate-950/40 border border-slate-850 rounded-xl text-left text-[10px] text-slate-400 leading-relaxed z-10 relative">
+                          <AlertTriangle className="h-4.5 w-4.5 text-amber-500 shrink-0 mt-0.5" />
+                          <span>
+                            Su inventario ha sido apartado en la sucursal de Farma-Humana. Complete el pago antes de que finalice el temporizador o la reserva será liberada.
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Pay Summary info widget */}
+                      <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 backdrop-blur-md space-y-3">
+                        <h4 className="text-xs font-bold text-white uppercase tracking-wider">Resumen de Factura</h4>
+                        <div className="text-xs text-slate-400 space-y-2">
+                          <div className="flex justify-between">
+                            <span>Concepto</span>
+                            <span className="text-white font-semibold">2 Medicamentos</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Sucursal Destino</span>
+                            <span className="text-white font-semibold truncate max-w-[150px]">{selectedBranch}</span>
+                          </div>
+                          <div className="border-t border-slate-800 pt-2 flex justify-between items-baseline font-bold">
+                            <span className="text-white">Total a Pagar</span>
+                            <span className="text-base text-indigo-400">${totals.netTotal.toFixed(2)}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                    </div>
+
+                  </div>
+                )}
 
               </div>
             )}
@@ -823,8 +1257,7 @@ export default function PatientView({ patientName, patientEmail, onLogout }: Pat
           <div className="absolute inset-0 bg-slate-950/75 backdrop-blur-sm" onClick={() => setIsTermsModalOpen(false)}></div>
           
           <div className="relative bg-slate-900 border border-slate-800 text-slate-100 w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 flex flex-col max-h-[85vh]">
-            {/* Modal Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-850 bg-slate-950/40">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-855 bg-slate-955/40">
               <h3 className="font-bold text-white text-sm flex items-center gap-2">
                 <ShieldCheck className="h-5 w-5 text-indigo-400" />
                 <span>Términos y Condiciones Farma-Humana</span>
@@ -837,7 +1270,6 @@ export default function PatientView({ patientName, patientEmail, onLogout }: Pat
               </button>
             </div>
 
-            {/* Scrollable Terms Content */}
             <div className="p-6 space-y-4 overflow-y-auto text-xs text-slate-400 leading-relaxed">
               <p className="font-bold text-white">1. Tratamiento de Datos Personales y de Salud</p>
               <p>
@@ -855,8 +1287,7 @@ export default function PatientView({ patientName, patientEmail, onLogout }: Pat
               </p>
             </div>
 
-            {/* Modal Action Footer */}
-            <div className="p-4 bg-slate-950/60 border-t border-slate-850 flex flex-col gap-3">
+            <div className="p-4 bg-slate-955/65 border-t border-slate-855 flex flex-col gap-3">
               <label className="flex items-start gap-2.5 p-2 rounded-lg bg-slate-900/60 border border-slate-850 text-[11px] text-slate-350 cursor-pointer">
                 <input
                   type="checkbox"
