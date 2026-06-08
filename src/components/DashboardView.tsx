@@ -770,12 +770,9 @@ export default function DashboardView({ orders, products, onNavigate, onSelectOr
                     <p className="text-xs font-semibold text-white truncate">{prod.name}</p>
                     <p className="text-[10px] text-surface-500 font-mono truncate">SKU: {prod.sku} • Min: {prod.minStock}</p>
                   </div>
-                  <button
-                    onClick={() => onNavigate('products')}
-                    className="px-2 py-1 text-[10px] font-bold text-secondary-400 hover:text-secondary-300 bg-secondary-500/15 border border-secondary-500/20 rounded-md transition-colors whitespace-nowrap cursor-pointer"
-                  >
-                    Surtir
-                  </button>
+                  <span className="px-2 py-1 text-[10px] font-bold text-secondary-400 bg-secondary-500/15 border border-secondary-500/20 rounded-md whitespace-nowrap">
+                    Bajo stock
+                  </span>
                 </div>
               ))
             ) : (
@@ -791,12 +788,9 @@ export default function DashboardView({ orders, products, onNavigate, onSelectOr
             )}
             
             {lowStockProducts.length > 3 && (
-              <button
-                onClick={() => onNavigate('products')}
-                className="w-full text-center text-xs text-secondary-400 font-semibold hover:text-secondary-300 transition-colors pt-2 cursor-pointer"
-              >
-                Y {lowStockProducts.length - 3} alertas más. Administrar inventario
-              </button>
+              <p className="w-full text-center text-xs text-secondary-400 font-semibold pt-2">
+                Y {lowStockProducts.length - 3} alertas más de inventario
+              </p>
             )}
           </div>
         </div>

@@ -4,7 +4,6 @@ import React from 'react';
 import {
   LayoutDashboard,
   ShoppingBag,
-  Package,
   Users,
   Settings,
   Activity,
@@ -17,7 +16,6 @@ interface SidebarProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
   pendingOrdersCount: number;
-  lowStockCount: number;
   onLogout: () => void;
 }
 
@@ -25,7 +23,6 @@ export default function Sidebar({
   activeTab,
   setActiveTab,
   pendingOrdersCount,
-  lowStockCount,
   onLogout,
 }: SidebarProps) {
   return (
@@ -44,13 +41,6 @@ export default function Sidebar({
           icon: ShoppingBag,
           badge: pendingOrdersCount > 0 ? pendingOrdersCount : null,
           badgeColor: 'bg-primary-500 text-foreground',
-        },
-        {
-          id: 'products',
-          name: 'Productos',
-          icon: Package,
-          badge: lowStockCount > 0 ? lowStockCount : null,
-          badgeColor: 'bg-secondary-500 text-foreground animate-pulse',
         },
         { id: 'customers', name: 'Clientes', icon: Users },
         { id: 'doctors', name: 'Gestión Médicos', icon: Stethoscope },

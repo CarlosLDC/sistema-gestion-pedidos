@@ -5,7 +5,6 @@ import Sidebar from '../components/Sidebar';
 import { AppShell, AppHeader, AppHeaderAction } from '../components/layout';
 import DashboardView from '../components/DashboardView';
 import OrdersView from '../components/OrdersView';
-import ProductsView from '../components/ProductsView';
 import CustomersView from '../components/CustomersView';
 import OrderDetailModal from '../components/OrderDetailModal';
 import NewOrderModal from '../components/NewOrderModal';
@@ -96,18 +95,6 @@ export default function Home() {
   };
 
   // Actions
-  const handleUpdateStock = (productId: string, newStock: number) => {
-    const updated = products.map(p => p.id === productId ? { ...p, stock: newStock } : p);
-    saveProducts(updated);
-  };
-
-  const handleAddProduct = (newProd: Omit<Product, 'id'>) => {
-    const newId = `prod-${products.length + 1}`;
-    const productWithId: Product = { ...newProd, id: newId };
-    const updated = [...products, productWithId];
-    saveProducts(updated);
-  };
-
   const handleAddCustomer = (newCust: Omit<Customer, 'id' | 'totalOrders' | 'totalSpent'>) => {
     const newId = `cust-${customers.length + 1}`;
     const customerWithId: Customer = {
@@ -270,7 +257,6 @@ export default function Home() {
           activeTab={activeTab}
           setActiveTab={setActiveTab}
           pendingOrdersCount={pendingCount}
-          lowStockCount={lowStockCount}
           onLogout={handleLogout}
         />
       }
@@ -298,14 +284,6 @@ export default function Home() {
           orders={orders}
           onSelectOrder={setSelectedOrder}
           onOpenNewOrder={() => setIsNewOrderOpen(true)}
-        />
-      )}
-
-      {activeTab === 'products' && (
-        <ProductsView
-          products={products}
-          onUpdateStock={handleUpdateStock}
-          onAddProduct={handleAddProduct}
         />
       )}
 
