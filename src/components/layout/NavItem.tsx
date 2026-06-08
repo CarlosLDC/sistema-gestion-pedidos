@@ -43,9 +43,9 @@ export default function NavItem({ item, isActive, accent, onClick }: NavItemProp
     <button
       onClick={onClick}
       className={cn(
-        'w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group relative border-l-2',
+        'w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm transition-all duration-200 group relative border-l-2',
         isActive
-          ? cn(accentActiveClasses[accent], 'font-semibold')
+          ? accentActiveClasses[accent]
           : 'text-surface-500 hover:text-foreground hover:bg-surface-850 border-transparent'
       )}
     >
@@ -55,7 +55,13 @@ export default function NavItem({ item, isActive, accent, onClick }: NavItemProp
           isActive ? accentIconClasses[accent] : 'text-surface-400 group-hover:text-surface-300'
         )}
       />
-      <span className="flex-1 min-w-0 text-left text-xs leading-snug whitespace-nowrap truncate" title={item.name}>
+      <span
+        className={cn(
+          'zenith-nav-label flex-1 min-w-0 text-left text-xs whitespace-nowrap truncate',
+          isActive && 'zenith-nav-label--active'
+        )}
+        title={item.name}
+      >
         {item.name}
       </span>
       {item.badge != null && item.badgeColor && (

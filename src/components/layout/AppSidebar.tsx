@@ -81,7 +81,7 @@ export default function AppSidebar({
         </div>
         <div className="min-w-0 flex-1">
           <h1 className="text-foreground tracking-tight text-base leading-none truncate">{brand.title}</h1>
-          <span className="text-[10px] text-surface-500 font-medium tracking-wider uppercase truncate block">
+          <span className="zenith-field-label text-[10px] tracking-wider uppercase truncate block">
             {brand.subtitle}
           </span>
         </div>
@@ -91,7 +91,7 @@ export default function AppSidebar({
 
       <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
         {sectionLabel && (
-          <div className="px-4 py-2 text-[10px] font-semibold text-surface-500 uppercase tracking-wider">
+          <div className="zenith-field-label px-4 py-2 text-[10px] uppercase tracking-wider">
             {sectionLabel}
           </div>
         )}
