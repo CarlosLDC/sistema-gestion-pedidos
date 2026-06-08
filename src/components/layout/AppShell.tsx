@@ -69,7 +69,7 @@ export default function AppShell({
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
           {headerContent}
           <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-surface-950">
-            <div className={cn('max-w-7xl mx-auto', contentClassName)}>{children}</div>
+            <div className={cn('w-full max-w-[96rem] mx-auto', contentClassName)}>{children}</div>
           </main>
         </div>
       </div>

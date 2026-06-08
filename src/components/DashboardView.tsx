@@ -501,8 +501,8 @@ export default function DashboardView({ orders, products, onNavigate, onSelectOr
           {/* Doctors Table */}
           {dbSearchTab === 'medicos' && (
             <>
-            <div className="hidden lg:block overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse">
+            <div className="zenith-table-wrap hidden lg:block">
+            <table className="zenith-table text-xs">
               <thead>
                 <tr className="border-b border-surface-850 text-surface-500 uppercase font-bold tracking-wider">
                   <th className="py-2.5">ID</th>
@@ -562,8 +562,8 @@ export default function DashboardView({ orders, products, onNavigate, onSelectOr
           {/* Patients Table */}
           {dbSearchTab === 'pacientes' && (
             <>
-            <div className="hidden lg:block overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse">
+            <div className="zenith-table-wrap hidden lg:block">
+            <table className="zenith-table text-xs">
               <thead>
                 <tr className="border-b border-surface-855 text-surface-500 uppercase font-bold tracking-wider">
                   <th className="py-2.5">Cédula</th>
@@ -627,8 +627,8 @@ export default function DashboardView({ orders, products, onNavigate, onSelectOr
           {/* Stock Movements Table */}
           {dbSearchTab === 'movimientos' && (
             <>
-            <div className="hidden lg:block overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse">
+            <div className="zenith-table-wrap hidden lg:block">
+            <table className="zenith-table text-xs">
               <thead>
                 <tr className="border-b border-surface-855 text-surface-500 uppercase font-bold tracking-wider">
                   <th className="py-2.5">Movimiento</th>
@@ -701,8 +701,8 @@ export default function DashboardView({ orders, products, onNavigate, onSelectOr
             </button>
           </div>
           
-          <div className="hidden lg:block overflow-x-auto">
-            <table className="w-full text-left text-sm border-collapse">
+          <div className="zenith-table-wrap hidden lg:block">
+            <table className="zenith-table text-sm">
               <thead>
                 <tr className="border-b border-surface-805 text-xs font-bold text-surface-450 uppercase tracking-wider">
                   <th className="pb-3">ID</th>

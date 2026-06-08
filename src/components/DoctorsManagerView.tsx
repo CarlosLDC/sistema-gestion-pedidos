@@ -381,8 +381,8 @@ export default function DoctorsManagerView() {
             </p>
           ) : (
             <>
-              <div className="hidden lg:block overflow-x-auto">
-                <table className="w-full text-left text-xs border-collapse">
+              <div className="zenith-table-wrap hidden lg:block">
+                <table className="zenith-table text-xs">
                   <thead>
                     <tr className="border-b border-surface-850 text-surface-500 font-bold uppercase tracking-wider">
                       <th className="pb-2.5">Médico</th>

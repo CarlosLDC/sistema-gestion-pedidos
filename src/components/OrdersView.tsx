@@ -151,8 +151,8 @@ export default function OrdersView({ orders, onSelectOrder, onOpenNewOrder }: Or
       <Card className="p-0 overflow-hidden">
         {processedOrders.length > 0 ? (
           <>
-            <div className="hidden lg:block overflow-x-auto">
-              <table className="w-full text-left text-sm border-collapse">
+            <div className="zenith-table-wrap hidden lg:block">
+              <table className="zenith-table text-sm">
                 <thead>
                   <tr className="border-b border-surface-850 bg-surface-950/20 text-xs font-semibold text-surface-400 uppercase tracking-wider">
                     <th className="px-6 py-4">Código</th>
@@ -181,7 +181,7 @@ export default function OrdersView({ orders, onSelectOrder, onOpenNewOrder }: Or
                         className={`hover:bg-surface-850/20 transition-colors group ${getDispatchRowClassName(order.status)}`}
                       >
                         <td className="px-6 py-4.5 font-mono font-bold text-white text-xs">{order.id}</td>
-                        <td className="px-6 py-4.5">
+                        <td className="px-6 py-4.5 zenith-table__stack">
                           <div className="flex flex-col">
                             <span className="font-semibold text-surface-200">{order.customerName}</span>
                             <span className="text-[10px] text-surface-500">{order.customerEmail}</span>

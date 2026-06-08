@@ -487,7 +487,7 @@ export default function DoctorView({ doctorName, doctorEmail, onLogout }: Doctor
 
       <AppShell
         portal="doctor"
-        contentClassName="max-w-6xl"
+        contentClassName="max-w-7xl"
         sidebar={
           <AppSidebar
             accent="primary"
@@ -737,13 +737,13 @@ export default function DoctorView({ doctorName, doctorEmail, onLogout }: Doctor
                     <div className="bg-surface-900/60 border border-surface-800 rounded-2xl overflow-hidden backdrop-blur-md">
                       {filteredPatients.length > 0 ? (
                         <>
-                          <div className="hidden lg:block overflow-x-auto">
-                            <table className="w-full text-left text-sm border-collapse">
+                          <div className="zenith-table-wrap hidden lg:block">
+                            <table className="zenith-table text-sm">
                               <thead>
                                 <tr className="border-b border-surface-850 bg-surface-950/20 text-xs font-semibold text-surface-400 uppercase tracking-wider">
-                                  <th className="px-6 py-4">Paciente</th>
-                                  <th className="px-6 py-4">Contacto</th>
-                                  <th className="px-6 py-4">Condición</th>
+                                  <th className="px-6 py-4 zenith-table__stack">Paciente</th>
+                                  <th className="px-6 py-4 zenith-table__stack">Contacto</th>
+                                  <th className="px-6 py-4 zenith-table__wrap">Condición</th>
                                   <th className="px-6 py-4">Última visita</th>
                                   <th className="px-6 py-4 text-right">Acción</th>
                                 </tr>
@@ -755,7 +755,7 @@ export default function DoctorView({ doctorName, doctorEmail, onLogout }: Doctor
                                     onClick={() => openPatientForm(patient)}
                                     className="hover:bg-surface-850/20 transition-colors cursor-pointer"
                                   >
-                                    <td className="px-6 py-4.5">
+                                    <td className="px-6 py-4.5 zenith-table__stack">
                                       <div className="flex items-center gap-3">
                                         <div className="h-8 w-8 rounded-full bg-secondary-650 flex items-center justify-center font-bold text-white text-xs shrink-0">
                                           {patient.name.charAt(0)}
@@ -766,13 +766,13 @@ export default function DoctorView({ doctorName, doctorEmail, onLogout }: Doctor
                                         </div>
                                       </div>
                                     </td>
-                                    <td className="px-6 py-4.5">
+                                    <td className="px-6 py-4.5 zenith-table__stack">
                                       <p className="text-xs text-surface-350">{patient.phone}</p>
                                       <p className="text-[10px] text-surface-500 mt-0.5">
                                         {patient.age} años • {patient.gender}
                                       </p>
                                     </td>
-                                    <td className="px-6 py-4.5">
+                                    <td className="px-6 py-4.5 zenith-table__wrap">
                                       <p className="text-xs text-surface-300">{patient.condition || 'Sin condición registrada'}</p>
                                       {patient.allergies && patient.allergies !== 'Ninguna conocida' && (
                                         <p className="text-[10px] text-secondary-455 mt-1 flex items-center gap-1">

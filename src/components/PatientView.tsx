@@ -478,7 +478,7 @@ export default function PatientView({ patientName, patientEmail, onLogout }: Pat
   return (
     <AppShell
       portal="patient"
-      contentClassName="max-w-5xl"
+      contentClassName="max-w-6xl"
       sidebar={
         <AppSidebar
           accent="primary"
@@ -655,8 +655,8 @@ export default function PatientView({ patientName, patientEmail, onLogout }: Pat
                     <p className="text-xs text-surface-400">Listado cronológico de recetas autorizadas.</p>
                   </div>
 
-                  <div className="hidden lg:block overflow-x-auto">
-                    <table className="w-full text-left text-sm border-collapse">
+                  <div className="zenith-table-wrap hidden lg:block">
+                    <table className="zenith-table text-sm">
                       <thead>
                         <tr className="border-b border-surface-850 text-xs font-semibold text-surface-500 uppercase tracking-wider">
                           <th className="pb-3">Código</th>
@@ -864,8 +864,8 @@ export default function PatientView({ patientName, patientEmail, onLogout }: Pat
                         <p className="text-xs text-surface-400">Registro cronológico de adherencia al tratamiento.</p>
                       </div>
 
-                      <div className="hidden md:block overflow-x-auto">
-                        <table className="w-full text-left text-sm border-collapse">
+                      <div className="zenith-table-wrap hidden md:block">
+                        <table className="zenith-table text-sm">
                           <thead>
                             <tr className="border-b border-surface-850 text-xs font-semibold text-surface-500 uppercase tracking-wider">
                               <th className="pb-3">Fecha</th>

@@ -120,13 +120,13 @@ export default function CustomersView({ customers, onAddCustomer }: CustomersVie
       <div className="bg-surface-900/60 border border-surface-800 rounded-2xl overflow-hidden backdrop-blur-md">
         {filteredCustomers.length > 0 ? (
           <>
-          <div className="hidden lg:block overflow-x-auto">
-            <table className="w-full text-left text-sm border-collapse">
+          <div className="zenith-table-wrap hidden lg:block">
+            <table className="zenith-table text-sm">
               <thead>
                 <tr className="border-b border-surface-850 bg-surface-950/20 text-xs font-semibold text-surface-400 uppercase tracking-wider">
-                  <th className="px-6 py-4">Cliente</th>
-                  <th className="px-6 py-4">Contacto</th>
-                  <th className="px-6 py-4">Dirección</th>
+                  <th className="px-6 py-4 zenith-table__stack">Cliente</th>
+                  <th className="px-6 py-4 zenith-table__stack">Contacto</th>
+                  <th className="px-6 py-4 zenith-table__wrap">Dirección</th>
                   <th className="px-6 py-4 text-center">Pedidos</th>
                   <th className="px-6 py-4 text-right">Facturación</th>
                 </tr>
@@ -134,7 +134,7 @@ export default function CustomersView({ customers, onAddCustomer }: CustomersVie
               <tbody className="divide-y divide-surface-850">
                 {filteredCustomers.map((c) => (
                   <tr key={c.id} className="hover:bg-surface-850/20 transition-colors">
-                    <td className="px-6 py-4.5">
+                    <td className="px-6 py-4.5 zenith-table__stack">
                       <div className="flex items-center gap-3">
                         <div className="h-8 w-8 rounded-full bg-surface-800 border border-surface-700 flex items-center justify-center font-bold text-white text-xs shrink-0">
                           {c.name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase()}
@@ -145,7 +145,7 @@ export default function CustomersView({ customers, onAddCustomer }: CustomersVie
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4.5 space-y-1">
+                    <td className="px-6 py-4.5 space-y-1 zenith-table__stack">
                       <p className="text-xs text-surface-350 flex items-center gap-1.5">
                         <Mail className="h-3 w-3 text-surface-500 shrink-0" />
                         {c.email}
@@ -157,7 +157,7 @@ export default function CustomersView({ customers, onAddCustomer }: CustomersVie
                         </p>
                       )}
                     </td>
-                    <td className="px-6 py-4.5">
+                    <td className="px-6 py-4.5 zenith-table__wrap">
                       <p className="text-xs text-surface-350 flex items-center gap-1.5" title={formatCustomerAddress(c)}>
                         <MapPin className="h-3.5 w-3.5 text-surface-500 shrink-0" />
                         <span>{formatCustomerAddress(c)}</span>

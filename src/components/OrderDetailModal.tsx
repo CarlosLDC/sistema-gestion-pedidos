@@ -140,11 +140,11 @@ export default function OrderDetailModal({ order, onClose, onUpdateStatus }: Ord
               <div className="px-4 py-3 bg-surface-950/25 border-b border-surface-850">
                 <h4 className="zenith-section-title">Artículos del Pedido</h4>
               </div>
-              <div className="hidden lg:block overflow-x-auto">
-                <table className="w-full text-left text-sm">
+              <div className="zenith-table-wrap hidden lg:block">
+                <table className="zenith-table text-sm">
                   <thead>
                     <tr className="border-b border-surface-850 bg-surface-950/10 text-xs text-surface-400 font-bold uppercase">
-                      <th className="px-4 py-3">Producto</th>
+                      <th className="px-4 py-3 zenith-table__stack">Producto</th>
                       <th className="px-4 py-3 text-right">Precio</th>
                       <th className="px-4 py-3 text-center">Cant.</th>
                       <th className="px-4 py-3 text-right">Total</th>
@@ -153,7 +153,7 @@ export default function OrderDetailModal({ order, onClose, onUpdateStatus }: Ord
                   <tbody className="divide-y divide-surface-850/60">
                     {order.items.map((item, idx) => (
                       <tr key={idx} className="hover:bg-surface-950/10">
-                        <td className="px-4 py-3">
+                        <td className="px-4 py-3 zenith-table__stack">
                           <p className="font-semibold text-white">{item.productName}</p>
                           <span className="text-[10px] text-surface-500 font-mono">ID: {item.productId}</span>
                         </td>
