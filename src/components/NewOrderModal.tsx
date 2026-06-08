@@ -4,6 +4,7 @@ import React, { useState, useMemo } from 'react';
 import { X, Search, Plus, Minus, User, PlusCircle, CreditCard, MapPin, Trash2, ShoppingBag } from 'lucide-react';
 import { Product, Customer, Order, OrderItem } from '../types';
 import { formatCurrency } from '../lib/currency';
+import { isMedicationProduct } from '../lib/products';
 import { Button, Modal, ModalBody } from './ui';
 
 interface NewOrderModalProps {
@@ -46,8 +47,13 @@ export default function NewOrderModal({
   const [paymentMethod, setPaymentMethod] = useState<'Tarjeta' | 'Transferencia' | 'Efectivo'>('Tarjeta');
   const [discountAmount, setDiscountAmount] = useState<number>(0);
 
-  // Filtered lists
-  const filteredProducts = products.filter(p => 
+  const medicationProducts = useMemo(
+    () => products.filter(isMedicationProduct),
+    [products]
+  );
+
+  // Filtered lists — solo medicamentos
+  const filteredProducts = medicationProducts.filter(p =>
     p.name.toLowerCase().includes(productSearch.toLowerCase()) ||
     p.sku.toLowerCase().includes(productSearch.toLowerCase()) ||
     p.category.toLowerCase().includes(productSearch.toLowerCase())
@@ -62,7 +68,7 @@ export default function NewOrderModal({
 
   // Cart helper functions
   const addToCart = (prodId: string) => {
-    const product = products.find(p => p.id === prodId);
+    const product = medicationProducts.find(p => p.id === prodId);
     if (!product) return;
     
     const currentQty = cart[prodId] || 0;
@@ -91,14 +97,14 @@ export default function NewOrderModal({
   // Computations
   const cartItemsList = useMemo(() => {
     return Object.entries(cart).map(([prodId, qty]) => {
-      const product = products.find(p => p.id === prodId)!;
+      const product = medicationProducts.find(p => p.id === prodId)!;
       return {
         product,
         quantity: qty,
         lineTotal: product.price * qty
       };
     });
-  }, [cart, products]);
+  }, [cart, medicationProducts]);
 
   const subtotal = cartItemsList.reduce((sum, item) => sum + item.lineTotal, 0);
   const tax = subtotal * 0.21; // 21% IVA
@@ -133,7 +139,7 @@ export default function NewOrderModal({
     }
 
     if (cartItemsList.length === 0) {
-      alert('El carrito debe contener al menos un producto.');
+      alert('El carrito debe contener al menos un medicamento.');
       return;
     }
 
@@ -195,7 +201,7 @@ export default function NewOrderModal({
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4.5 w-4.5 text-surface-500" />
               <input
                 type="text"
-                placeholder="Buscar por nombre, SKU o categoría..."
+                placeholder="Buscar medicamento por nombre, SKU o categoría..."
                 value={productSearch}
                 onChange={(e) => setProductSearch(e.target.value)}
                 className="w-full pl-10 pr-4 py-2.5 bg-surface-950/40 border border-surface-800 rounded-xl text-sm text-white placeholder-surface-500 focus:outline-none focus:border-primary-500 transition-colors"
@@ -257,7 +263,7 @@ export default function NewOrderModal({
             {/* Cart Items Summary */}
             <div className="border border-surface-850 rounded-xl overflow-hidden flex flex-col flex-1 bg-surface-950/20">
               <div className="px-4 py-3 bg-surface-950/40 border-b border-surface-850 flex items-center justify-between">
-                <h4 className="text-xs font-bold text-surface-300 uppercase tracking-wider">Productos Seleccionados</h4>
+                <h4 className="text-xs font-bold text-surface-300 uppercase tracking-wider">Medicamentos Seleccionados</h4>
                 <span className="text-xs font-bold text-surface-500 font-mono">{cartItemsList.length} items</span>
               </div>
 
@@ -305,7 +311,7 @@ export default function NewOrderModal({
                   ))
                 ) : (
                   <div className="text-center py-12 text-surface-500 text-xs font-medium">
-                    El carrito está vacío. Añada productos arriba.
+                    El carrito está vacío. Añada medicamentos arriba.
                   </div>
                 )}
               </div>

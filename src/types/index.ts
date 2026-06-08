@@ -7,6 +7,7 @@ export interface Product {
   stock: number;
   minStock: number;
   imageColor: string; // Tailwind gradient or color representation
+  productType?: 'medicamento' | 'general';
 }
 
 export interface Customer {
