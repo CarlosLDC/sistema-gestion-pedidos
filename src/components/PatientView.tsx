@@ -27,7 +27,7 @@ import {
   Info,
   QrCode,
   DollarSign,
-  AlertTriangle
+  ExternalLink
 } from 'lucide-react';
 import { AppShell, AppSidebar, AppHeader } from './layout';
 import { PageHeader, Button, ListCard, Modal, ModalBody } from './ui';
@@ -98,6 +98,8 @@ interface ProposalItem {
   discountPercent: number;
 }
 
+const EXAMPLE_EXTERNAL_PAYMENT_GATEWAY = 'https://pagos.humana.example/checkout';
+
 export default function PatientView({ patientName, patientEmail, onLogout }: PatientViewProps) {
   // Navigation Tabs: 'recipes' | 'proposals' | 'payment' | 'voucher' | 'profile'
   const [activeSubTab, setActiveSubTab] = useState<'recipes' | 'proposals' | 'payment' | 'voucher' | 'profile'>('recipes');
@@ -123,13 +125,10 @@ export default function PatientView({ patientName, patientEmail, onLogout }: Pat
   const [isTermsModalOpen, setIsTermsModalOpen] = useState(false);
 
   // Payment States (Pantalla P.3)
-  const [paymentMethod, setPaymentMethod] = useState<'mobile' | 'transfer'>('mobile');
-  const [mobileSenderPhone, setMobileSenderPhone] = useState('');
-  const [mobileAmountBs, setMobileAmountBs] = useState('');
-  const [referenceNumber, setReferenceNumber] = useState('');
-  const [transferAmountBs, setTransferAmountBs] = useState('');
   const [paymentTimeLeft, setPaymentTimeLeft] = useState(900); // 15 minutes in seconds
-  const [paymentError, setPaymentError] = useState('');
+  const [isRedirectSimulating, setIsRedirectSimulating] = useState(false);
+  const [redirectCountdown, setRedirectCountdown] = useState(3);
+  const [simulatedPaymentReference, setSimulatedPaymentReference] = useState('');
   
   // Voucher info
   const [voucherId, setVoucherId] = useState('');
@@ -171,6 +170,17 @@ export default function PatientView({ patientName, patientEmail, onLogout }: Pat
   };
 
   const totals = getProposalTotals();
+
+  const getExamplePaymentRedirectUrl = () => {
+    const params = new URLSearchParams({
+      pedido: 'PR-2026',
+      total: totals.netTotal.toFixed(2),
+      sucursal: selectedBranch,
+      metodos: 'pago-movil,transferencia',
+      paciente: patientEmail,
+    });
+    return `${EXAMPLE_EXTERNAL_PAYMENT_GATEWAY}?${params.toString()}`;
+  };
 
   // Load profile settings from localStorage if available
   useEffect(() => {
@@ -217,6 +227,23 @@ export default function PatientView({ patientName, patientEmail, onLogout }: Pat
     return () => clearInterval(timer);
   }, [activeSubTab, paymentTimeLeft]);
 
+  // Simulación de redirección a la pasarela externa del cliente
+  useEffect(() => {
+    if (isRedirectSimulating && redirectCountdown > 0) {
+      const timer = setTimeout(() => setRedirectCountdown(redirectCountdown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+    if (isRedirectSimulating && redirectCountdown === 0) {
+      const randVoucher = `VOU-2026-${Math.floor(100000 + Math.random() * 900000)}`;
+      setVoucherId(randVoucher);
+      setSimulatedPaymentReference(`PAY-EXT-EXAMPLE-${Math.floor(100000 + Math.random() * 900000)}`);
+      setLastOrderStatus('Listo para retirar');
+      setIsRedirectSimulating(false);
+      setRedirectCountdown(3);
+      setActiveSubTab('voucher');
+    }
+  }, [isRedirectSimulating, redirectCountdown]);
+
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -241,56 +268,15 @@ export default function PatientView({ patientName, patientEmail, onLogout }: Pat
       return;
     }
     setPaymentTimeLeft(900);
-    setPaymentError('');
-    setMobileSenderPhone('');
-    setMobileAmountBs('');
-    setReferenceNumber('');
-    setTransferAmountBs('');
+    setIsRedirectSimulating(false);
+    setRedirectCountdown(3);
+    setSimulatedPaymentReference('');
     setActiveSubTab('payment');
   };
 
-  const handleRegisterPayment = (e: React.FormEvent) => {
-    e.preventDefault();
-    setPaymentError('');
-
-    if (paymentMethod === 'mobile') {
-      if (!mobileSenderPhone) {
-        setPaymentError('Por favor ingrese el número de teléfono emisor.');
-        return;
-      }
-      if (!mobileAmountBs) {
-        setPaymentError('Por favor ingrese el monto en Bolívares (Bs.).');
-        return;
-      }
-      const amount = parseFloat(mobileAmountBs.replace(',', '.'));
-      if (isNaN(amount) || amount <= 0) {
-        setPaymentError('El monto en Bolívares no es válido.');
-        return;
-      }
-    } else {
-      if (!referenceNumber) {
-        setPaymentError('Por favor ingrese el número de referencia de la transacción.');
-        return;
-      }
-      if (referenceNumber.length < 5) {
-        setPaymentError('El número de referencia debe contener al menos 5 dígitos.');
-        return;
-      }
-      if (!transferAmountBs) {
-        setPaymentError('Por favor ingrese el monto en Bolívares (Bs.).');
-        return;
-      }
-      const transferAmount = parseFloat(transferAmountBs.replace(',', '.'));
-      if (isNaN(transferAmount) || transferAmount <= 0) {
-        setPaymentError('El monto en Bolívares no es válido.');
-        return;
-      }
-    }
-
-    const randVoucher = `VOU-2026-${Math.floor(100000 + Math.random() * 900000)}`;
-    setVoucherId(randVoucher);
-    setLastOrderStatus('Listo para retirar');
-    setActiveSubTab('voucher');
+  const handleSimulatePaymentRedirect = () => {
+    setIsRedirectSimulating(true);
+    setRedirectCountdown(3);
   };
 
   const handleSaveProfile = (e: React.FormEvent) => {
@@ -748,7 +734,7 @@ export default function PatientView({ patientName, patientEmail, onLogout }: Pat
               <div className="space-y-6 animate-in fade-in duration-300">
                 <PageHeader
                   title="Preparación de Pago"
-                  description="Registre el pago de sus medicamentos reservados en el almacén de distribución."
+                  description="Documentación y simulación del flujo de redirección hacia la pasarela externa del cliente."
                   actions={
                     <div className="bg-secondary-500/10 border border-secondary-500/20 px-4 py-2.5 rounded-2xl flex items-center gap-3 shrink-0">
                       <Clock className="h-5 w-5 text-secondary-400 animate-pulse" />
@@ -762,116 +748,78 @@ export default function PatientView({ patientName, patientEmail, onLogout }: Pat
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                   
-                  {/* Payment form */}
+                  {/* Documentación de redirección a pasarela externa */}
                   <div className="lg:col-span-2 bg-surface-900/60 border border-surface-800 rounded-2xl p-6 backdrop-blur-md space-y-5">
-                    <div>
-                      <h3 className="zenith-section-title">Registro del Comprobante</h3>
-                      <p className="text-xs text-surface-400">Seleccione su método de pago y consigne los datos solicitados.</p>
+                    <div className="p-4 bg-primary-500/10 border border-primary-500/20 rounded-xl flex items-start gap-3 text-xs text-surface-300">
+                      <Info className="h-5 w-5 text-primary-400 shrink-0 mt-0.5" />
+                      <p className="leading-relaxed">
+                        El procesamiento de pagos (Pago Móvil y Transferencia) se realiza en la pasarela externa del cliente.
+                        Esta aplicación no implementa la pasarela: solo documenta y simula el flujo de redirección de integración.
+                      </p>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <button
-                        onClick={() => setPaymentMethod('mobile')}
-                        className={`py-3 rounded-xl border font-bold text-xs flex flex-col items-center gap-1.5 transition-all cursor-pointer ${
-                          paymentMethod === 'mobile'
-                            ? 'bg-primary-500/15 border-primary-500 text-white'
-                            : 'bg-surface-950/40 border-surface-850 text-surface-400 hover:text-surface-200'
-                        }`}
-                      >
-                        <QrCode className="h-4.5 w-4.5" />
-                        <span>Pago Móvil</span>
-                      </button>
-                      
-                      <button
-                        onClick={() => setPaymentMethod('transfer')}
-                        className={`py-3 rounded-xl border font-bold text-xs flex flex-col items-center gap-1.5 transition-all cursor-pointer ${
-                          paymentMethod === 'transfer'
-                            ? 'bg-primary-500/15 border-primary-500 text-white'
-                            : 'bg-surface-950/40 border-surface-850 text-surface-400 hover:text-surface-200'
-                        }`}
-                      >
-                        <Building className="h-4.5 w-4.5" />
-                        <span>Transferencia</span>
-                      </button>
+                    <div className="space-y-3">
+                      <h3 className="zenith-section-title">Ejemplo de redirección</h3>
+                      <p className="text-xs text-surface-400">
+                        Al confirmar el pedido, el paciente sería enviado a la URL de la pasarela del cliente con los parámetros del pedido.
+                      </p>
+                      <div className="p-3 bg-surface-950/60 border border-surface-850 rounded-xl">
+                        <p className="text-[10px] font-bold text-surface-500 uppercase mb-1.5">URL de ejemplo</p>
+                        <p className="text-[11px] font-mono text-primary-300 break-all leading-relaxed">
+                          {getExamplePaymentRedirectUrl()}
+                        </p>
+                      </div>
                     </div>
 
-                    <form onSubmit={handleRegisterPayment} className="space-y-4">
-                      
-                      {paymentError && (
-                        <div className="p-3 bg-secondary-500/10 border border-secondary-500/20 rounded-xl text-secondary-400 text-xs flex items-center gap-2">
-                          <AlertTriangle className="h-4 w-4 shrink-0" />
-                          <span>{paymentError}</span>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                      <div className="p-3 bg-surface-950/50 border border-surface-850 rounded-xl space-y-1">
+                        <p className="font-semibold text-surface-500">Métodos en pasarela del cliente</p>
+                        <p className="text-surface-300">Pago Móvil, Transferencia</p>
+                      </div>
+                      <div className="p-3 bg-surface-950/50 border border-surface-850 rounded-xl space-y-1">
+                        <p className="font-semibold text-surface-500">Retorno esperado</p>
+                        <p className="text-surface-300">Callback con referencia de pago confirmada</p>
+                      </div>
+                    </div>
+
+                    {isRedirectSimulating ? (
+                      <div className="p-5 bg-surface-800 border border-surface-700 rounded-2xl space-y-4 text-center">
+                        <div className="flex justify-center text-surface-300">
+                          <ExternalLink className="h-10 w-10 animate-pulse" />
                         </div>
-                      )}
-
-                      {paymentMethod === 'mobile' && (
-                        <div className="p-4 bg-surface-950/50 border border-surface-850 rounded-xl space-y-4 text-xs">
-                          <div className="space-y-1.5">
-                            <label className="zenith-field-label">Número de teléfono emisor</label>
-                            <input
-                              type="tel"
-                              placeholder="Ej: 04141234567"
-                              value={mobileSenderPhone}
-                              onChange={(e) => setMobileSenderPhone(e.target.value)}
-                              className="w-full bg-surface-950 border border-surface-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-primary-500 placeholder-surface-700"
-                            />
-                          </div>
-
-                          <div className="space-y-1.5">
-                            <label className="zenith-field-label">Monto en Bolívares (Bs.)</label>
-                            <input
-                              type="text"
-                              inputMode="decimal"
-                              placeholder="Ej: 1250.50"
-                              value={mobileAmountBs}
-                              onChange={(e) => setMobileAmountBs(e.target.value)}
-                              className="w-full bg-surface-950 border border-surface-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-primary-500 placeholder-surface-700"
-                            />
-                          </div>
+                        <div className="space-y-1">
+                          <h4 className="zenith-section-title">Simulando redirección</h4>
+                          <p className="text-xs text-surface-400 leading-relaxed">
+                            El usuario sería redirigido a la pasarela externa del cliente para completar el pago.
+                          </p>
                         </div>
-                      )}
-
-                      {paymentMethod === 'transfer' && (
-                        <div className="p-4 bg-surface-950/50 border border-surface-850 rounded-xl space-y-4 text-xs">
-                          <div className="space-y-1.5">
-                            <label className="zenith-field-label">Número de referencia</label>
-                            <input
-                              type="text"
-                              placeholder="Ej: 290199482"
-                              value={referenceNumber}
-                              onChange={(e) => setReferenceNumber(e.target.value)}
-                              className="w-full bg-surface-950 border border-surface-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-primary-500 placeholder-surface-700"
+                        <div className="space-y-1.5 pt-2">
+                          <div className="h-1.5 w-full bg-surface-800 rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-primary-500 transition-all duration-1000 ease-linear"
+                              style={{ width: `${(redirectCountdown / 3) * 100}%` }}
                             />
                           </div>
-
-                          <div className="space-y-1.5">
-                            <label className="zenith-field-label">Monto en Bolívares (Bs.)</label>
-                            <input
-                              type="text"
-                              inputMode="decimal"
-                              placeholder="Ej: 1250.50"
-                              value={transferAmountBs}
-                              onChange={(e) => setTransferAmountBs(e.target.value)}
-                              className="w-full bg-surface-950 border border-surface-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-primary-500 placeholder-surface-700"
-                            />
-                          </div>
+                          <p className="text-[10px] text-surface-500 font-mono">
+                            Simulación en {redirectCountdown} segundos...
+                          </p>
                         </div>
-                      )}
-
+                      </div>
+                    ) : (
                       <div className="flex gap-3 justify-end pt-2">
                         <button
                           type="button"
                           onClick={() => setActiveSubTab('proposals')}
                           className="px-4 py-2.5 bg-surface-950 border border-surface-800 rounded-xl text-surface-400 hover:text-white text-xs font-bold transition-all cursor-pointer"
                         >
-                          Cancelar
+                          Volver a Propuesta
                         </button>
-                        <Button type="submit">
-                          Registrar Pago de ${totals.netTotal.toFixed(2)}
+                        <Button onClick={handleSimulatePaymentRedirect}>
+                          <span>Simular redirección (ejemplo)</span>
+                          <ExternalLink className="h-4.5 w-4.5" />
                         </Button>
                       </div>
-
-                    </form>
+                    )}
                   </div>
 
                   {/* Summary of checkout */}
@@ -996,21 +944,10 @@ export default function PatientView({ patientName, patientEmail, onLogout }: Pat
 
                     <div className="border-t border-surface-200 pt-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-surface-455 text-[10px]">
                       <div>
-                        {paymentMethod === 'mobile' ? (
-                          <>
-                            <p className="font-semibold text-surface-600">Teléfono emisor:</p>
-                            <p className="font-mono text-surface-800 font-bold mt-0.5">{mobileSenderPhone}</p>
-                            <p className="font-semibold text-surface-600 mt-2">Monto en Bolívares (Bs.):</p>
-                            <p className="font-mono text-surface-800 font-bold mt-0.5">{mobileAmountBs} Bs.</p>
-                          </>
-                        ) : (
-                          <>
-                            <p className="font-semibold text-surface-600">Número de referencia:</p>
-                            <p className="font-mono text-surface-800 font-bold mt-0.5">{referenceNumber}</p>
-                            <p className="font-semibold text-surface-600 mt-2">Monto en Bolívares (Bs.):</p>
-                            <p className="font-mono text-surface-800 font-bold mt-0.5">{transferAmountBs} Bs.</p>
-                          </>
-                        )}
+                        <p className="font-semibold text-surface-600">Pasarela externa del cliente:</p>
+                        <p className="font-mono text-surface-800 font-bold mt-0.5">{EXAMPLE_EXTERNAL_PAYMENT_GATEWAY}</p>
+                        <p className="font-semibold text-surface-600 mt-2">Referencia de pago (simulación):</p>
+                        <p className="font-mono text-surface-800 font-bold mt-0.5">{simulatedPaymentReference}</p>
                       </div>
                       
                       <div className="flex items-center gap-1.5 text-secondary-605 font-bold">
